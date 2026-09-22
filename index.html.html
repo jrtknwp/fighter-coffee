@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#8b7bb8">
+<title>☕ Fighter Coffee</title>
+<style>
+:root{
+  --purple:#8b7bb8; --purple-dark:#67558f; --purple-light:#f1edfa;
+  --bg:#f7f6fa; --card:#fff; --text:#29272f; --muted:#77727f;
+  --line:#e8e5ed; --red:#dc3d52; --red-bg:#fff0f2;
+  --green:#2f9b67; --green-bg:#ecfaf3; --shadow:0 5px 18px rgba(60,45,90,.07);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans Thai",sans-serif}
+body{min-height:100vh}
+button,input,select{font:inherit}
+button{border:0;cursor:pointer}
+.app{max-width:620px;margin:auto;min-height:100vh;padding-bottom:82px}
+header{padding:calc(16px + env(safe-area-inset-top)) 18px 14px;background:#fff;position:sticky;top:0;z-index:10;border-bottom:1px solid var(--line)}
+.brand{font-size:21px;font-weight:800}
+.sub{font-size:12px;color:var(--muted);margin-top:2px}
+main{padding:15px}
+.page{display:none}.page.active{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:13px;box-shadow:var(--shadow)}
+h2{font-size:19px;margin:0 0 14px}
+h3{font-size:16px;margin:0 0 10px}
+label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px}
+input,select{width:100%;height:46px;border:1px solid #ddd9e5;border-radius:12px;background:#fff;padding:0 13px;outline:none}
+input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(139,123,184,.12)}
+.row{display:flex;gap:9px}.row>*{flex:1}
+.btn{min-height:44px;border-radius:12px;padding:9px 14px;font-weight:750}
+.btn.primary{background:var(--purple);color:#fff}.btn.primary:active{background:var(--purple-dark)}
+.btn.light{background:var(--purple-light);color:var(--purple-dark)}
+.btn.green{background:var(--green-bg);color:#187b4e}
+.btn.red{background:var(--red-bg);color:var(--red)}
+.btn.gray{background:#f0eef3;color:#5e5965}
+.full{width:100%}
+.price-total{background:var(--purple-light);border-radius:14px;padding:13px;margin-top:12px;display:flex;justify-content:space-between;align-items:center}
+.price-total strong{font-size:21px;color:var(--purple-dark)}
+.summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 9px}
+.stat small{display:block;color:var(--muted);font-size:11px}.stat strong{display:block;margin-top:4px;font-size:18px}
+.list{display:flex;flex-direction:column;gap:9px}
+.item{border:1px solid var(--line);border-radius:15px;padding:12px;background:#fff}
+.item-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.name{font-weight:800}.meta{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5}
+.amount{font-weight:850;white-space:nowrap}
+.status{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:4px 8px;font-size:12px;font-weight:800;margin-top:7px}
+.status.overdue{background:var(--red-bg);color:var(--red)}.status.today{background:#fff5df;color:#a96900}.status.paid{background:var(--green-bg);color:#187b4e}
+.item-actions{display:flex;gap:7px;margin-top:10px}.item-actions .btn{flex:1}
+.empty{text-align:center;color:var(--muted);padding:28px 10px}
+.bottom-nav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:100%;max-width:620px;background:rgba(255,255,255,.97);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding:7px 5px calc(7px + env(safe-area-inset-bottom));z-index:20}
+.nav-btn{background:transparent;color:#8a8590;font-size:10px;font-weight:700;padding:5px 1px;border-radius:12px}.nav-btn .ico{font-size:20px;display:block;line-height:22px;margin-bottom:2px}.nav-btn.active{color:var(--purple-dark);background:var(--purple-light)}
+.date-head{display:flex;gap:8px;align-items:end}.date-head .grow{flex:1}
+.section-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.section-title h3{margin:0}
+.mini{font-size:12px;color:var(--muted)}
+.summary-line{display:flex;justify-content:space-between;gap:8px;padding:4px 0;line-height:1.45}.pay-check{width:22px;height:22px;accent-color:var(--green);cursor:pointer;vertical-align:middle}
+.product-row{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding:12px 0}.product-row:last-child{border-bottom:0}
+.product-name{font-weight:750}.product-price{font-size:13px;color:var(--muted)}
+.product-actions{display:flex;gap:6px}.icon-btn{background:#f2f0f5;border-radius:10px;padding:8px 10px}
+.history-filter{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.notice{font-size:12px;background:#faf8ff;color:#62577a;border-radius:12px;padding:10px 12px;margin-top:10px}
+.modal-back{position:fixed;inset:0;background:rgba(20,15,28,.45);display:none;align-items:flex-end;z-index:50}.modal-back.show{display:flex}
+.modal{background:#fff;width:100%;max-width:620px;margin:auto;border-radius:22px 22px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));max-height:90vh;overflow:auto}
+.modal h3{font-size:18px}
+.toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%) translateY(15px);background:#29252f;color:#fff;padding:10px 15px;border-radius:12px;font-size:13px;opacity:0;pointer-events:none;transition:.2s;z-index:100;max-width:90%;text-align:center}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.month-title{font-weight:800;margin:17px 0 8px}
+@media(min-width:621px){.app{border-left:1px solid var(--line);border-right:1px solid var(--line)}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="brand">☕ Fighter Coffee</div>
+  <div class="sub">บันทึกยอดขาย • ติดตามค้างชำระ • ข้อมูลเก็บในเครื่อง</div>
+</header>
+
+<main>
+  <section id="page-add" class="page active">
+    <div class="card">
+      <h2>➕ เพิ่มรายการ</h2>
+      <label>วันที่ขาย</label>
+      <input id="addDate" type="date">
+      <label>ชื่อลูกค้า</label>
+      <input id="customer" type="text" placeholder="เช่น พี่เอ">
+      <label>สินค้า</label>
+      <select id="product"></select>
+      <label>จำนวนแก้ว</label>
+      <input id="qty" type="number" min="1" step="1" value="1" inputmode="numeric">
+      <div class="price-total"><span>ยอดรวม</span><strong id="calcTotal">0 บาท</strong></div>
+      <button class="btn primary full" style="margin-top:12px" onclick="addSale()">บันทึกรายการ</button>
+    </div>
+    <div class="card">
+      <div class="section-title"><h3>ราคาสินค้าปัจจุบัน</h3><button class="btn light" onclick="showPage('settings')">⚙️ จัดการ</button></div>
+      <div id="quickProducts"></div>
+    </div>
+  </section>
+
+  <section id="page-summary" class="page">
+    <div class="card">
+      <h2>📋 สรุปยอด</h2>
+      <div class="date-head">
+        <div class="grow"><label style="margin-top:0">วันที่</label><input id="summaryDate" type="date" onchange="renderSummary()"></div>
+        <button class="btn light" onclick="setToday('summaryDate');renderSummary()">วันนี้</button>
+      </div>
+    </div>
+    <div class="summary-grid" style="margin-bottom:13px">
+      <div class="stat"><small>ยอดขายทั้งหมด</small><strong id="sumAll">0</strong></div>
+      <div class="stat"><small>ยอดจ่ายแล้ว</small><strong id="sumPaid">0</strong></div>
+      <div class="stat"><small>ยอดค้างชำระ</small><strong id="sumUnpaid">0</strong></div>
+    </div>
+    <div class="card">
+      <div class="section-title"><h3 id="summaryTitle">รายการวันนี้</h3><span class="mini" id="summaryCount"></span></div>
+      <div id="summaryList" class="list"></div>
+    </div>
+  </section>
+
+  <section id="page-unpaid" class="page">
+    <div class="card">
+      <h2>⏳ ค้างชำระ</h2>
+      <div class="notice">รวมรายการค้างของลูกค้าชื่อเดียวกันเป็นรายการเดียว • เรียงจากค้างนาน → น้อย • รับเงินแล้วไม่ลบข้อมูล</div>
+    </div>
+    <div id="unpaidList" class="list"></div>
+  </section>
+
+  <section id="page-history" class="page">
+    <div class="card">
+      <h2>🗂 ประวัติ</h2>
+      <div class="history-filter">
+        <div><label style="margin-top:0">เลือกเดือน</label><input id="historyMonth" type="month" onchange="renderHistory()"></div>
+        <div><label style="margin-top:0">เลือกวันที่ (ถ้าต้องการ)</label><input id="historyDate" type="date" onchange="renderHistory()"></div>
+      </div>
+      <button class="btn gray full" style="margin-top:9px" onclick="clearHistoryFilter()">แสดงทั้งเดือน</button>
+    </div>
+    <div class="summary-grid" style="margin-bottom:13px">
+      <div class="stat"><small>ยอดขายรวม</small><strong id="histSales">0</strong></div>
+      <div class="stat"><small>จำนวนแก้ว</small><strong id="histCups">0</strong></div>
+      <div class="stat"><small>ยอดจ่ายแล้ว</small><strong id="histPaid">0</strong></div>
+    </div>
+    <div id="historyList"></div>
+  </section>
+
+  <section id="page-settings" class="page">
+    <div class="card">
+      <h2>⚙️ จัดการสินค้า</h2>
+      <button class="btn primary full" onclick="openProductModal()">＋ เพิ่มสินค้า</button>
+      <div id="productList" style="margin-top:8px"></div>
+    </div>
+    <div class="card">
+      <h3>ข้อมูลในเครื่อง</h3>
+      <div class="mini">รายการขายและราคาสินค้าถูกเก็บในฐานข้อมูลออนไลน์ และซิงก์ข้ามเครื่อง</div>
+      <button class="btn red full" style="margin-top:12px" onclick="clearAllData()">🗑 ลบข้อมูลทั้งหมด</button>
+    </div>
+  </section>
+</main>
+
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-page="add" onclick="showPage('add')"><span class="ico">➕</span>เพิ่มรายการ</button>
+  <button class="nav-btn" data-page="unpaid" onclick="showPage('unpaid')"><span class="ico">⏳</span>ค้างชำระ</button>
+  <button class="nav-btn" data-page="summary" onclick="showPage('summary')"><span class="ico">📋</span>สรุป</button>
+  <button class="nav-btn" data-page="history" onclick="showPage('history')"><span class="ico">🗂</span>ประวัติ</button>
+  <button class="nav-btn" data-page="settings" onclick="showPage('settings')"><span class="ico">⚙️</span>ตั้งค่า</button>
+</nav>
+</div>
+
+<div id="productModalBack" class="modal-back" onclick="if(event.target===this)closeProductModal()">
+  <div class="modal">
+    <h3 id="modalTitle">เพิ่มสินค้า</h3>
+    <label>ชื่อสินค้า</label><input id="modalProductName" type="text" placeholder="เช่น กาแฟ">
+    <label>ราคา / แก้ว</label><input id="modalProductPrice" type="number" min="0" step="0.01" inputmode="decimal" placeholder="35">
+    <div class="row" style="margin-top:14px">
+      <button class="btn gray" onclick="closeProductModal()">ยกเลิก</button>
+      <button class="btn primary" onclick="saveProduct()">บันทึก</button>
+    </div>
+  </div>
+</div>
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL='https://xsfkzhvraqjmrzphfeal.supabase.co';
+const SUPABASE_KEY='sb_publishable_TGOP1Jl_xKxua9nCustLTA_nOoiePap';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+const KEY_SALES='teaCoffeeSales_v1';
+const KEY_PRODUCTS='teaCoffeeProducts_v1';
+const DEFAULT_PRODUCTS=[
+  {id:crypto.randomUUID(),name:'กาแฟ',price:35},
+  {id:crypto.randomUUID(),name:'ชาเย็น',price:35},
+  {id:crypto.randomUUID(),name:'ชาเขียว',price:40},
+  {id:crypto.randomUUID(),name:'โกโก้',price:40}
+];
+let sales=JSON.parse(localStorage.getItem(KEY_SALES)||'null')||[];
+let products=JSON.parse(localStorage.getItem(KEY_PRODUCTS)||'null')||DEFAULT_PRODUCTS;
+let editingProductId=null;
+
+function pad(n){return String(n).padStart(2,'0')}
+function localDateObj(s){const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)}
+function dateKey(d=new Date()){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
+function todayKey(){return dateKey(new Date())}
+function money(n){return Number(n||0).toLocaleString('th-TH',{minimumFractionDigits:0,maximumFractionDigits:2})}
+function thaiDate(s){if(!s)return '';const d=localDateObj(s);return `${d.getDate()} ${['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][d.getMonth()]} ${d.getFullYear()+543}`}
+function saveLocal(){
+  localStorage.setItem(KEY_SALES,JSON.stringify(sales));
+  localStorage.setItem(KEY_PRODUCTS,JSON.stringify(products));
+}
+function saleToRow(s){return {id:s.id,date:s.date,customer:s.customer,product:s.product,price:Number(s.price),qty:Number(s.qty),total:Number(s.total),paid:!!s.paid,paid_at:s.paidAt||null,created_at:s.createdAt||new Date().toISOString()}}
+function rowToSale(r){return {id:r.id,date:r.date,customer:r.customer,product:r.product,price:Number(r.price),qty:Number(r.qty),total:Number(r.total),paid:!!r.paid,paidAt:r.paid_at||null,createdAt:r.created_at}}
+function productToRow(p){return {id:p.id,name:p.name,price:Number(p.price)}}
+function rowToProduct(r){return {id:r.id,name:r.name,price:Number(r.price)}}
+async function loadCloudData(){
+  const [sr,pr]=await Promise.all([
+    sb.from('sales').select('*').order('date',{ascending:false}).order('created_at',{ascending:true}),
+    sb.from('products').select('*').order('created_at',{ascending:true})
+  ]);
+  if(sr.error) throw new Error('sales: '+sr.error.message);
+  if(pr.error) throw new Error('products: '+pr.error.message);
+
+  const cloudSales=(sr.data||[]).map(rowToSale);
+  const cloudProducts=(pr.data||[]).map(rowToProduct);
+  const localSales=JSON.parse(localStorage.getItem(KEY_SALES)||'null')||[];
+  const localProducts=JSON.parse(localStorage.getItem(KEY_PRODUCTS)||'null')||DEFAULT_PRODUCTS;
+
+  if(!cloudProducts.length){
+    const seed=localProducts.length?localProducts:DEFAULT_PRODUCTS;
+    const ins=await sb.from('products').insert(seed.map(productToRow));
+    if(ins.error) throw new Error('products seed: '+ins.error.message);
+    products=seed;
+  }else products=cloudProducts;
+
+  if(!cloudSales.length && localSales.length){
+    const ins=await sb.from('sales').insert(localSales.map(saleToRow));
+    if(ins.error) throw new Error('sales migration: '+ins.error.message);
+    sales=localSales;
+  }else sales=cloudSales;
+  saveLocal();
+}
+
+function toast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.remove('show'),1800)}
+function setToday(id){document.getElementById(id).value=todayKey()}
+function daysOverdue(date){
+  const a=localDateObj(date), b=localDateObj(todayKey());
+  return Math.max(0,Math.floor((b-a)/86400000));
+}
+function statusHTML(s){
+  if(s.paid) return '<span class="status paid">🟢 จ่ายแล้ว</span>';
+  const d=daysOverdue(s.date);
+  return d===0 ? '<span class="status today">🟡 ยังไม่จ่าย</span>' : `<span class="status overdue">🔴 ค้าง ${d} วัน</span>`;
+}
+function productOptions(){
+  const sel=document.getElementById('product');
+  const old=sel.value;
+  sel.innerHTML=products.map(p=>`<option value="${p.id}">${esc(p.name)} — ${money(p.price)} บาท</option>`).join('');
+  if(old && products.some(p=>p.id===old)) sel.value=old;
+  updateCalc();
+}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function selectedProduct(){return products.find(p=>p.id===document.getElementById('product').value)}
+function updateCalc(){const p=selectedProduct(), q=Math.max(0,Number(document.getElementById('qty').value)||0);document.getElementById('calcTotal').textContent=money((p?p.price:0)*q)+' บาท'}
+async function addSale(){
+  const date=document.getElementById('addDate').value||todayKey();
+  const customer=document.getElementById('customer').value.trim();
+  const p=selectedProduct(), qty=Math.floor(Number(document.getElementById('qty').value));
+  if(!customer){toast('กรุณากรอกชื่อลูกค้า');return}
+  if(!p){toast('กรุณาเลือกสินค้า');return}
+  if(!qty||qty<1){toast('จำนวนแก้วต้องมากกว่า 0');return}
+  const sale={id:crypto.randomUUID(),date,customer,productId:p.id,product:p.name,price:Number(p.price),qty,total:Number(p.price)*qty,paid:false,paidAt:null,createdAt:new Date().toISOString()};
+  const {error}=await sb.from('sales').insert(saleToRow(sale));
+  if(error){toast('บันทึกไม่สำเร็จ: '+error.message);return}
+  sales.push(sale);saveLocal();
+  document.getElementById('customer').value='';document.getElementById('qty').value=1;updateCalc();
+  renderAll();toast('บันทึกรายการแล้ว ✓');
+}
+
+function showPage(page){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.page===page));
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(page==='summary')renderSummary();
+  if(page==='unpaid')renderUnpaid();
+  if(page==='history')renderHistory();
+  if(page==='settings')renderProducts();
+}
+function saleCard(s,actions=false){
+  return `<div class="item">
+    <div class="item-top"><div><div class="name">${esc(s.customer)}</div><div class="meta">${thaiDate(s.date)} • ${esc(s.product)} ${s.qty} แก้ว</div>${statusHTML(s)}</div><div class="amount">${money(s.total)} บาท</div></div>
+    ${actions?`<div class="item-actions">${!s.paid?`<button class="btn green" onclick="markPaid('${s.id}')">✓ รับเงินแล้ว</button>`:''}<button class="btn red" onclick="deleteSale('${s.id}')">🗑 เคลียร์รายการ</button></div>`:''}
+  </div>`;
+}
+function renderSummary(){
+  const date=document.getElementById('summaryDate').value||todayKey();
+  document.getElementById('summaryDate').value=date;
+
+  // ยอดของ "วันที่เลือก" ยังคงคำนวณเฉพาะรายการของวันนั้น
+  const dayArr=sales.filter(s=>s.date===date);
+  const total=dayArr.reduce((a,s)=>a+s.total,0);
+  const paid=dayArr.filter(s=>s.paid).reduce((a,s)=>a+s.total,0);
+
+  document.getElementById('sumAll').textContent=money(total)+' ฿';
+  document.getElementById('sumPaid').textContent=money(paid)+' ฿';
+  document.getElementById('sumUnpaid').textContent=money(total-paid)+' ฿';
+  document.getElementById('summaryTitle').textContent='สรุป '+thaiDate(date);
+
+  // สำหรับหน้าที่แคปส่ง LINE:
+  // 1) รายการของวันที่เลือก
+  // 2) ดึง "รายการเก่าที่ยังไม่จ่าย" ของลูกค้าชื่อเดียวกันมารวมด้วย
+  // 3) ลูกค้าชื่อเดียวกันแสดงเป็นคนเดียว ไม่แยกเป็นหลายการ์ด
+  const customers={};
+
+  sales.forEach(s=>{
+    const key=s.customer.trim().toLowerCase();
+    const relevant = (s.date===date) || (!s.paid && s.date<date);
+    if(!relevant) return;
+
+    if(!customers[key]){
+      customers[key]={
+        customer:s.customer,
+        items:[],
+        totalUnpaid:0,
+        hasToday:false,
+        todayPaid:false
+      };
+    }
+
+    customers[key].items.push(s);
+    if(!s.paid && s.date<date) customers[key].totalUnpaid+=s.total;
+    if(s.date===date){
+      customers[key].hasToday=true;
+      if(s.paid) customers[key].todayPaid=true;
+    }
+  });
+
+  const groups=Object.values(customers).sort((a,b)=>{
+    const au=a.items.filter(s=>!s.paid).map(s=>daysBetweenDates(s.date,date));
+    const bu=b.items.filter(s=>!s.paid).map(s=>daysBetweenDates(s.date,date));
+    const aMax=au.length?Math.max(...au):0;
+    const bMax=bu.length?Math.max(...bu):0;
+    return bMax-aMax || a.customer.localeCompare(b.customer,'th');
+  });
+
+  document.getElementById('summaryCount').textContent=groups.length+' คน';
+
+  document.getElementById('summaryList').innerHTML=groups.length
+    ? groups.map(g=>{
+        const unpaidBefore=g.items.filter(s=>!s.paid && s.date<date).sort((a,b)=>a.date.localeCompare(b.date));
+        const todayItems=g.items.filter(s=>s.date===date);
+        const allUnpaid=[...unpaidBefore,...todayItems.filter(s=>!s.paid)];
+        const totalAllUnpaid=allUnpaid.reduce((a,s)=>a+s.total,0);
+
+        let badge='';
+        if(allUnpaid.length){
+          const maxDays=Math.max(...allUnpaid.map(s=>daysBetweenDates(s.date,date)));
+          badge=maxDays===0
+            ? '<span class="status today">🟡 ยังไม่จ่าย</span>'
+            : `<span class="status overdue">🔴 ค้าง ${maxDays} วัน</span>`;
+        }else{
+          badge='<span class="status paid">🟢 จ่ายแล้ว</span>';
+        }
+
+        const lines=[];
+
+        // รายการเก่าที่ยังไม่จ่าย
+        unpaidBefore.forEach(s=>{
+          const d=daysBetweenDates(s.date,date);
+          lines.push(`<div class="meta summary-line">
+            <span>${thaiDate(s.date)} • ${esc(s.product)} ${s.qty} แก้ว</span>
+            <span style="color:var(--red);font-weight:800;white-space:nowrap">${money(s.total)} ฿ • 🔴 ค้าง ${d} วัน</span>
+          </div>`);
+        });
+
+        // รายการของวันที่เลือก
+        todayItems.forEach(s=>{
+          lines.push(`<div class="meta summary-line">
+            <span>${thaiDate(s.date)} • ${esc(s.product)} ${s.qty} แก้ว</span>
+            <span style="font-weight:800;white-space:nowrap">${money(s.total)} ฿ ${s.paid?'• 🟢 จ่ายแล้ว':'• 🟡 ยังไม่จ่าย'}</span>
+          </div>`);
+        });
+
+        return `<div class="item">
+          <div class="item-top">
+            <div>
+              <div class="name">${esc(g.customer)}</div>
+              ${badge}
+            </div>
+            <div class="amount" style="${totalAllUnpaid?'color:var(--red)':''}">
+              ${totalAllUnpaid?money(totalAllUnpaid)+' ฿':'จ่ายครบ'}
+            </div>
+          </div>
+          <div style="margin-top:9px;border-top:1px solid var(--line);padding-top:7px">
+            ${lines.join('')}
+          </div>
+        </div>`;
+      }).join('')
+    : '<div class="empty">ไม่มีรายการของวันที่เลือก</div>';
+}
+
+function daysBetweenDates(from,to){
+  const a=localDateObj(from), b=localDateObj(to);
+  return Math.max(0,Math.floor((b-a)/86400000));
+}
+
+function renderUnpaid(){
+  const arr=sales.filter(s=>!s.paid);
+  const groups={};
+  arr.forEach(s=>{
+    const key=s.customer.trim().toLowerCase();
+    if(!groups[key]) groups[key]={customer:s.customer,items:[],total:0,oldest:s.date};
+    groups[key].items.push(s);
+    groups[key].total+=s.total;
+    if(s.date<groups[key].oldest) groups[key].oldest=s.date;
+  });
+
+  const grouped=Object.values(groups).sort((a,b)=>
+    daysOverdue(b.oldest)-daysOverdue(a.oldest) || b.total-a.total
+  );
+
+  document.getElementById('unpaidList').innerHTML=grouped.length
+    ? grouped.map(g=>{
+        const items=[...g.items].sort((a,b)=>a.date.localeCompare(b.date));
+        const maxDays=daysOverdue(g.oldest);
+        const status=maxDays===0
+          ? '<span class="status today">🟡 ยังไม่จ่าย</span>'
+          : `<span class="status overdue">🔴 ค้าง ${maxDays} วัน</span>`;
+        return `<div class="item">
+          <div class="item-top">
+            <div>
+              <div class="name">${esc(g.customer)}</div>
+              ${status}
+              <div class="meta" style="margin-top:8px">
+                ค้างรวม <strong style="color:var(--red)">${money(g.total)} บาท</strong>
+                • ${items.length} รายการ
+              </div>
+            </div>
+            <div class="amount" style="color:var(--red)">${money(g.total)} บาท</div>
+          </div>
+          <div style="margin-top:10px;border-top:1px solid var(--line);padding-top:8px">
+            ${items.map(s=>`<div class="meta" style="display:flex;justify-content:space-between;gap:8px;padding:4px 0">
+              <span>${thaiDate(s.date)} • ${esc(s.product)} ${s.qty} แก้ว</span>
+              <span style="color:var(--red);font-weight:800;white-space:nowrap">${money(s.total)} บาท <input class="pay-check" type="checkbox" onchange="togglePaid('${s.id}',this.checked)"></span>
+            </div>`).join('')}
+          </div>
+          <div class="meta" style="margin-top:9px;text-align:right;color:var(--muted)">
+            ☑ ติ๊กที่รายการเมื่อรับเงินแล้ว
+          </div>
+        </div>`;
+      }).join('')
+    : '<div class="card empty">🎉 ไม่มีรายการค้างชำระ</div>';
+}
+async function markPaid(id){await togglePaid(id,true)}
+async function togglePaid(id, checked){
+  const s=sales.find(x=>x.id===id); if(!s)return;
+  const paidAt=checked?new Date().toISOString():null;
+  const {error}=await sb.from('sales').update({paid:!!checked,paid_at:paidAt}).eq('id',id);
+  if(error){toast('อัปเดตไม่สำเร็จ: '+error.message);return}
+  s.paid=!!checked;s.paidAt=paidAt;saveLocal();renderAll();
+  toast(checked?'ทำเครื่องหมายจ่ายแล้ว ✓':'ยกเลิกสถานะจ่ายแล้ว');
+}
+async function deleteSale(id){
+  if(!confirm('ต้องการลบรายการนี้จริงหรือไม่? ข้อมูลจะหายจากประวัติด้วย'))return;
+  const {error}=await sb.from('sales').delete().eq('id',id);
+  if(error){toast('ลบไม่สำเร็จ: '+error.message);return}
+  sales=sales.filter(s=>s.id!==id);saveLocal();renderAll();toast('ลบรายการแล้ว');
+}
+
+function renderHistory(){
+  let month=document.getElementById('historyMonth').value;
+  if(!month){
+    month=todayKey().slice(0,7);
+    document.getElementById('historyMonth').value=month;
+  }
+
+  const day=document.getElementById('historyDate').value;
+  let arr=sales.filter(s=>s.date.startsWith(month));
+  if(day)arr=arr.filter(s=>s.date===day);
+
+  const salesTotal=arr.reduce((a,s)=>a+s.total,0);
+  const cups=arr.reduce((a,s)=>a+s.qty,0);
+  const paid=arr.filter(s=>s.paid).reduce((a,s)=>a+s.total,0);
+
+  document.getElementById('histSales').textContent=money(salesTotal)+' ฿';
+  document.getElementById('histCups').textContent=money(cups);
+  document.getElementById('histPaid').textContent=money(paid)+' ฿';
+
+  // ประวัติรวมชื่อลูกค้าเดียวกัน ไม่แยกเป็นการ์ดตามรายการ
+  const groups={};
+  arr.forEach(s=>{
+    const key=s.customer.trim().toLowerCase();
+    if(!groups[key]) groups[key]={customer:s.customer,items:[],total:0,paidTotal:0,unpaidTotal:0};
+    groups[key].items.push(s);
+    groups[key].total+=s.total;
+    if(s.paid) groups[key].paidTotal+=s.total;
+    else groups[key].unpaidTotal+=s.total;
+  });
+
+  const grouped=Object.values(groups).sort((a,b)=>{
+    if((a.unpaidTotal>0)!==(b.unpaidTotal>0)) return a.unpaidTotal>0 ? -1 : 1;
+    return b.total-a.total;
+  });
+
+  document.getElementById('historyList').innerHTML=grouped.length
+    ? grouped.map(g=>{
+        const items=[...g.items].sort((a,b)=>{
+          if(a.paid!==b.paid) return a.paid?1:-1;
+          return b.date.localeCompare(a.date);
+        });
+        const unpaidDays=items.filter(s=>!s.paid).map(s=>daysOverdue(s.date));
+        const maxDays=unpaidDays.length?Math.max(...unpaidDays):0;
+        const badge=g.unpaidTotal>0
+          ? (maxDays===0
+            ? '<span class="status today">🟡 ยังไม่จ่าย</span>'
+            : `<span class="status overdue">🔴 ค้าง ${maxDays} วัน</span>`)
+          : '<span class="status paid">🟢 จ่ายแล้ว</span>';
+
+        return `<div class="card">
+          <div class="item-top">
+            <div>
+              <div class="name">${esc(g.customer)}</div>
+              ${badge}
+            </div>
+            <div class="amount">${money(g.total)} ฿</div>
+          </div>
+          <div style="margin-top:9px;border-top:1px solid var(--line);padding-top:7px">
+            ${items.map(s=>{
+              const dayCount=!s.paid ? daysOverdue(s.date) : 0;
+              return `<div class="meta summary-line">
+                <span>${thaiDate(s.date)} • ${esc(s.product)} ${s.qty} แก้ว</span>
+                <span style="font-weight:800;white-space:nowrap">
+                  ${money(s.total)} ฿ ${s.paid?'• 🟢 จ่ายแล้ว':dayCount===0?'• 🟡 ยังไม่จ่าย':`• 🔴 ค้าง ${dayCount} วัน`}
+                </span>
+              </div>`;
+            }).join('')}
+          </div>
+          <div class="meta" style="margin-top:8px">
+            รวม ${money(g.total)} ฿
+            ${g.unpaidTotal?` • <span style="color:var(--red);font-weight:800">ค้าง ${money(g.unpaidTotal)} ฿</span>`:''}
+            ${g.paidTotal?` • <span style="color:var(--green);font-weight:800">จ่ายแล้ว ${money(g.paidTotal)} ฿</span>`:''}
+          </div>
+        </div>`;
+      }).join('')
+    : '<div class="card empty">ไม่มีข้อมูลตามช่วงที่เลือก</div>';
+}
+
+function clearHistoryFilter(){document.getElementById('historyDate').value='';renderHistory()}
+function renderProducts(){
+  document.getElementById('productList').innerHTML=products.length?products.map(p=>`<div class="product-row">
+    <div><div class="product-name">${esc(p.name)}</div><div class="product-price">${money(p.price)} บาท / แก้ว</div></div>
+    <div class="product-actions"><button class="icon-btn" onclick="openProductModal('${p.id}')">✏️</button><button class="icon-btn" onclick="deleteProduct('${p.id}')">🗑</button></div>
+  </div>`).join(''):'<div class="empty">ยังไม่มีสินค้า</div>';
+  document.getElementById('quickProducts').innerHTML=products.map(p=>`<div class="product-row"><div class="product-name">${esc(p.name)}</div><div class="product-price">${money(p.price)} บาท</div></div>`).join('');
+}
+function openProductModal(id=null){
+  editingProductId=id;
+  const p=products.find(x=>x.id===id);
+  document.getElementById('modalTitle').textContent=p?'แก้ไขสินค้า':'เพิ่มสินค้า';
+  document.getElementById('modalProductName').value=p?p.name:'';
+  document.getElementById('modalProductPrice').value=p?p.price:'';
+  document.getElementById('productModalBack').classList.add('show');
+  setTimeout(()=>document.getElementById('modalProductName').focus(),100);
+}
+function closeProductModal(){document.getElementById('productModalBack').classList.remove('show');editingProductId=null}
+async function saveProduct(){
+  const name=document.getElementById('modalProductName').value.trim(), price=Number(document.getElementById('modalProductPrice').value);
+  if(!name){toast('กรุณาใส่ชื่อสินค้า');return} if(!Number.isFinite(price)||price<0){toast('กรุณาใส่ราคาให้ถูกต้อง');return}
+  if(editingProductId){
+    const {error}=await sb.from('products').update({name,price}).eq('id',editingProductId);
+    if(error){toast('บันทึกสินค้าไม่สำเร็จ: '+error.message);return}
+    const p=products.find(x=>x.id===editingProductId); if(p){p.name=name;p.price=price}
+  }else{
+    const p={id:crypto.randomUUID(),name,price};
+    const {error}=await sb.from('products').insert(productToRow(p));
+    if(error){toast('เพิ่มสินค้าไม่สำเร็จ: '+error.message);return}
+    products.push(p);
+  }
+  saveLocal();closeProductModal();productOptions();renderProducts();toast('บันทึกสินค้าแล้ว');
+}
+
+async function deleteProduct(id){
+  const p=products.find(x=>x.id===id);
+  if(!p)return;
+  if(!confirm(`ลบสินค้า "${p.name}" จากรายการราคาปัจจุบันหรือไม่?\nรายการเก่าจะยังไม่ถูกแก้ไข`))return;
+  const {error}=await sb.from('products').delete().eq('id',id);
+  if(error){toast('ลบสินค้าไม่สำเร็จ: '+error.message);return}
+  products=products.filter(x=>x.id!==id);saveLocal();productOptions();renderProducts();toast('ลบสินค้าแล้ว');
+}
+async function clearAllData(){
+  if(!confirm('ลบข้อมูลการขายและสินค้าทั้งหมดจากฐานข้อมูลออนไลน์จริงหรือไม่?'))return;
+  const [a,b]=await Promise.all([
+    sb.from('sales').delete().not('id','is',null),
+    sb.from('products').delete().not('id','is',null)
+  ]);
+  if(a.error||b.error){toast('ลบข้อมูลไม่สำเร็จ');return}
+  sales=[];products=[];saveLocal();location.reload();
+}
+
+function renderAll(){productOptions();renderProducts();renderSummary();renderUnpaid();renderHistory()}
+async function initApp(){
+  document.getElementById('addDate').value=todayKey();
+  document.getElementById('summaryDate').value=todayKey();
+  document.getElementById('historyMonth').value=todayKey().slice(0,7);
+  document.getElementById('product').addEventListener('change',updateCalc);
+  document.getElementById('qty').addEventListener('input',updateCalc);
+  try{
+    await loadCloudData();
+    renderAll();
+    toast('เชื่อมต่อฐานข้อมูลออนไลน์แล้ว ✓');
+  }catch(e){
+    console.error(e);
+    renderAll();
+    toast('เชื่อมต่อฐานข้อมูลไม่สำเร็จ');
+  }
+}
+initApp();
+</script>
+</body>
+</html>
