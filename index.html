@@ -189,9 +189,9 @@ const KEY_SALES='teaCoffeeSales_v1';
 const KEY_PRODUCTS='teaCoffeeProducts_v1';
 const DEFAULT_PRODUCTS=[
   {id:crypto.randomUUID(),name:'กาแฟ',price:35},
-  {id:crypto.randomUUID(),name:'ชาเย็น',price:35},
-  {id:crypto.randomUUID(),name:'ชาเขียว',price:40},
-  {id:crypto.randomUUID(),name:'โกโก้',price:40}
+  {id:crypto.randomUUID(),name:'ชาไทย',price:30},
+  {id:crypto.randomUUID(),name:'ชาเขียว',price:35},
+  {id:crypto.randomUUID(),name:'โกโก้',price:35}
 ];
 let sales=JSON.parse(localStorage.getItem(KEY_SALES)||'null')||[];
 let products=JSON.parse(localStorage.getItem(KEY_PRODUCTS)||'null')||DEFAULT_PRODUCTS;
@@ -211,6 +211,26 @@ function saleToRow(s){return {id:s.id,date:s.date,customer:s.customer,product:s.
 function rowToSale(r){return {id:r.id,date:r.date,customer:r.customer,product:r.product,price:Number(r.price),qty:Number(r.qty),total:Number(r.total),paid:!!r.paid,paidAt:r.paid_at||null,createdAt:r.created_at}}
 function productToRow(p){return {id:p.id,name:p.name,price:Number(p.price)}}
 function rowToProduct(r){return {id:r.id,name:r.name,price:Number(r.price)}}
+async function normalizeDefaultProducts(){
+  // ปรับเฉพาะชุดราคาเดิมของระบบ เพื่อไม่ทับราคาที่ผู้ใช้แก้เองภายหลัง
+  const updates=[];
+  for(const p of products){
+    let name=p.name, price=p.price;
+    if(name==='ชาเย็น' && Number(price)===35){name='ชาไทย';price=30}
+    else if(name==='ชาเขียว' && Number(price)===40){price=35}
+    else if(name==='โกโก้' && Number(price)===40){price=35}
+    if(name!==p.name || Number(price)!==Number(p.price)){
+      updates.push(sb.from('products').update({name,price}).eq('id',p.id));
+      p.name=name; p.price=price;
+    }
+  }
+  if(updates.length){
+    const results=await Promise.all(updates);
+    const bad=results.find(r=>r.error);
+    if(bad) throw new Error('products default update: '+bad.error.message);
+    saveLocal();
+  }
+}
 async function loadCloudData(){
   const [sr,pr]=await Promise.all([
     sb.from('sales').select('*').order('date',{ascending:false}).order('created_at',{ascending:true}),
@@ -230,6 +250,8 @@ async function loadCloudData(){
     if(ins.error) throw new Error('products seed: '+ins.error.message);
     products=seed;
   }else products=cloudProducts;
+
+  await normalizeDefaultProducts();
 
   if(!cloudSales.length && localSales.length){
     const ins=await sb.from('sales').insert(localSales.map(saleToRow));
@@ -438,9 +460,14 @@ function renderUnpaid(){
             <div class="amount" style="color:var(--red)">${money(g.total)} บาท</div>
           </div>
           <div style="margin-top:10px;border-top:1px solid var(--line);padding-top:8px">
-            ${items.map(s=>`<div class="meta" style="display:flex;justify-content:space-between;gap:8px;padding:4px 0">
-              <span>${thaiDate(s.date)} • ${esc(s.product)} ${s.qty} แก้ว</span>
-              <span style="color:var(--red);font-weight:800;white-space:nowrap">${money(s.total)} บาท <input class="pay-check" type="checkbox" onchange="togglePaid('${s.id}',this.checked)"></span>
+            ${items.map(s=>`<div style="padding:6px 0;border-bottom:1px dashed var(--line)">
+              <div class="meta" style="display:flex;justify-content:space-between;gap:8px;align-items:center">
+                <span>${thaiDate(s.date)} • ${esc(s.product)} ${s.qty} แก้ว</span>
+                <span style="color:var(--red);font-weight:800;white-space:nowrap">${money(s.total)} บาท <input class="pay-check" type="checkbox" onchange="togglePaid('${s.id}',this.checked)"></span>
+              </div>
+              <div style="text-align:right;margin-top:4px">
+                <button class="btn red" style="padding:6px 10px;font-size:12px" onclick="deleteSale('${s.id}')">🗑 ลบรายการ</button>
+              </div>
             </div>`).join('')}
           </div>
           <div class="meta" style="margin-top:9px;text-align:right;color:var(--muted)">
@@ -526,11 +553,16 @@ function renderHistory(){
           <div style="margin-top:9px;border-top:1px solid var(--line);padding-top:7px">
             ${items.map(s=>{
               const dayCount=!s.paid ? daysOverdue(s.date) : 0;
-              return `<div class="meta summary-line">
-                <span>${thaiDate(s.date)} • ${esc(s.product)} ${s.qty} แก้ว</span>
-                <span style="font-weight:800;white-space:nowrap">
-                  ${money(s.total)} ฿ ${s.paid?'• 🟢 จ่ายแล้ว':dayCount===0?'• 🟡 ยังไม่จ่าย':`• 🔴 ค้าง ${dayCount} วัน`}
-                </span>
+              return `<div style="padding:6px 0;border-bottom:1px dashed var(--line)">
+                <div class="meta summary-line">
+                  <span>${thaiDate(s.date)} • ${esc(s.product)} ${s.qty} แก้ว</span>
+                  <span style="font-weight:800;white-space:nowrap">
+                    ${money(s.total)} ฿ ${s.paid?'• 🟢 จ่ายแล้ว':dayCount===0?'• 🟡 ยังไม่จ่าย':`• 🔴 ค้าง ${dayCount} วัน`}
+                  </span>
+                </div>
+                <div style="text-align:right;margin-top:4px">
+                  <button class="btn red" style="padding:6px 10px;font-size:12px" onclick="deleteSale('${s.id}')">🗑 ลบรายการ</button>
+                </div>
               </div>`;
             }).join('')}
           </div>
