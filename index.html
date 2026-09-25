@@ -76,7 +76,7 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(13
 .toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%) translateY(15px);background:#29252f;color:#fff;padding:10px 15px;border-radius:12px;font-size:13px;opacity:0;pointer-events:none;transition:.2s;z-index:100;max-width:90%;text-align:center}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .month-title{font-weight:800;margin:17px 0 8px}
 
-.line-share-card{border:1px solid #ddd6ee;background:#fff}.line-mode{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 12px}.line-mode .btn.active{background:var(--purple);color:#fff}.line-preview{border:1px solid var(--line);border-radius:14px;padding:11px;background:#fff}.line-person{padding:8px 1px;border-bottom:1px solid #f0edf2}.line-person:last-child{border-bottom:0}.line-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.line-name{font-weight:800}.line-state{font-weight:850;text-align:right;white-space:nowrap}.line-state.ok{color:var(--green)}.line-state.due{color:var(--red)}.line-age{font-size:11px;margin-top:2px}.line-items{background:#faf8fb;border-radius:9px;padding:5px 8px;margin-top:5px}.line-sub{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:var(--muted);padding:2px 0}.line-sub b{color:#5d5962;white-space:nowrap}.line-grand{display:flex;justify-content:space-between;font-weight:850;background:var(--purple-light);border-radius:11px;padding:10px 11px;margin-top:9px}
+.line-share-card{border:1px solid #ddd6ee;background:#fff}.line-mode{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 12px}.line-mode .btn.active{background:var(--purple);color:#fff}.line-preview{border:1px solid var(--line);border-radius:14px;padding:11px;background:#fff}.line-person{padding:8px 1px;border-bottom:1px solid #f0edf2}.line-person:last-child{border-bottom:0}.line-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.line-name{font-weight:800}.line-state{font-weight:850;text-align:right;white-space:nowrap}.line-state.ok{color:var(--green)}.line-state.today{color:#d99a00}.line-state.due{color:var(--red)}.line-age{font-size:11px;margin-top:2px}.line-items{background:#faf8fb;border-radius:9px;padding:5px 8px;margin-top:5px}.line-sub{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:var(--muted);padding:2px 0}.line-sub b{color:#5d5962;white-space:nowrap}.line-grand{display:flex;justify-content:space-between;font-weight:850;background:var(--purple-light);border-radius:11px;padding:10px 11px;margin-top:9px}.line-report-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 0 9px;border-bottom:1px solid var(--line);margin-bottom:2px}.line-report-head img{width:104px;height:auto;display:block}.line-report-title{text-align:right;font-weight:850;font-size:14px}
 @media(min-width:621px){.app{border-left:1px solid var(--line);border-right:1px solid var(--line)}}
 </style>
 </head>
@@ -359,9 +359,22 @@ function renderLinePreview(){
   const el=document.getElementById('linePreview'); if(!el)return;
   const {date,groups,grand}=getLineSummaryData();
   if(!groups.length){el.innerHTML='<div class="empty">ไม่มีรายการสำหรับวันที่เลือก</div>';return}
-  el.innerHTML=`<div class="section-title" style="margin-bottom:3px"><strong>สรุป ${thaiDate(date)}</strong><span class="mini">${groups.length} คน</span></div>`+groups.map(g=>{
-    const state=g.paid?`<div class="line-state ok">🟢 จ่ายครบ</div>`:`<div class="line-state due">🔴 ${money(g.amount)} ฿<div class="line-age">ค้าง ${g.days} วัน • ${g.unpaid.length} รายการ</div></div>`;
-    const rows=g.shown.length?`<div class="line-items">${g.shown.map(s=>`<div class="line-sub"><span>${thaiDate(s.date)} • ${esc(s.product)} ${s.qty} แก้ว</span><b>${money(s.total)} ฿</b></div>`).join('')}</div>`:'';
+  const rowStatus=s=>{
+    const d=daysBetweenDates(s.date,date);
+    return d===0
+      ? `<span style="color:#d99a00;font-weight:800">🟡 วันนี้</span>`
+      : `<span style="color:var(--red);font-weight:800">🔴 ค้าง ${d} วัน</span>`;
+  };
+  el.innerHTML=`<div class="line-report-head"><img src="./fighter-logo.png" alt="Fighter Urban Coffee"><div class="line-report-title">สรุป ${thaiDate(date)} • ${groups.length} คน</div></div>`+groups.map(g=>{
+    let state;
+    if(g.paid){
+      state=`<div class="line-state ok">🟢 จ่ายครบ</div>`;
+    }else if(g.days===0){
+      state=`<div class="line-state today">🟡 ${money(g.amount)} ฿<div class="line-age">ยังไม่จ่าย • ${g.unpaid.length} รายการ</div></div>`;
+    }else{
+      state=`<div class="line-state due">🔴 ${money(g.amount)} ฿<div class="line-age">ค้าง ${g.days} วัน • ${g.unpaid.length} รายการ</div></div>`;
+    }
+    const rows=g.shown.length?`<div class="line-items">${g.shown.map(s=>`<div class="line-sub"><span>${thaiDate(s.date)} • ${esc(s.product)} ${s.qty} แก้ว${!g.paid?' • '+rowStatus(s):''}</span><b>${money(s.total)} ฿</b></div>`).join('')}</div>`:'';
     return `<div class="line-person"><div class="line-top"><div class="line-name">${esc(g.customer)}</div>${state}</div>${rows}</div>`;
   }).join('')+`<div class="line-grand"><span>ยอดค้างทั้งหมด</span><span>${money(grand)} ฿</span></div>`;
 }
@@ -373,22 +386,57 @@ async function makeLinePng(){
   const {date,groups,grand}=getLineSummaryData(); if(!groups.length)throw new Error('ไม่มีรายการสำหรับวันที่เลือก');
   const W=1080,pad=58,rowGap=12; const canvas=document.createElement('canvas'); const ctx=canvas.getContext('2d');
   ctx.font='700 34px system-ui, sans-serif';
-  let H=205;
-  groups.forEach(g=>{H+=82; if(g.shown.length){g.shown.forEach(s=>{ctx.font='26px system-ui, sans-serif';const txt=`${thaiDate(s.date)} • ${s.product} ${s.qty} แก้ว`;H+=Math.max(38,canvasWrap(ctx,txt,690).length*32)});H+=14}H+=rowGap}); H+=125;
+  let H=160;
+  groups.forEach(g=>{H+=82; if(g.shown.length){g.shown.forEach(s=>{ctx.font='26px system-ui, sans-serif';const txt=`${thaiDate(s.date)} • ${s.product} ${s.qty} แก้ว`;H+=Math.max(46,canvasWrap(ctx,txt,610).length*32)});H+=14}H+=rowGap}); H+=125;
   canvas.width=W;canvas.height=Math.max(H,400);ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,canvas.height);
-  let y=42;
-  // โลโก้เล็กด้านบนของ PNG เพื่อให้เป็นแบรนด์ แต่ไม่กินพื้นที่รายชื่อ
+  let y=34, logoH=54;
   try{
     const logo=await new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=reject;im.src='./fighter-logo.png'});
-    const logoW=205,logoH=logo.height*(logoW/logo.width);ctx.drawImage(logo,pad,y,logoW,logoH);y+=logoH+25;
-  }catch(e){ctx.fillStyle='#162b59';ctx.font='800 30px system-ui, sans-serif';ctx.fillText('FIGHTER',pad,y+30);y+=55}
-  ctx.fillStyle='#29272f';ctx.font='700 31px system-ui, sans-serif';ctx.fillText(`สรุป ${thaiDate(date)} • ${groups.length} คน`,pad,y);y+=28;ctx.strokeStyle='#e8e5ed';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.stroke();y+=28;
+    const logoW=220;logoH=logo.height*(logoW/logo.width);ctx.drawImage(logo,pad,y,logoW,logoH);
+  }catch(e){
+    ctx.fillStyle='#162b59';ctx.font='800 30px system-ui, sans-serif';ctx.fillText('FIGHTER',pad,y+34);
+  }
+  ctx.fillStyle='#29272f';ctx.font='700 31px system-ui, sans-serif';ctx.textAlign='right';
+  ctx.fillText(`สรุป ${thaiDate(date)} • ${groups.length} คน`,W-pad,y+Math.max(34,logoH*.58));
+  ctx.textAlign='left'; y+=Math.max(logoH,58)+20;
+  ctx.strokeStyle='#e8e5ed';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.stroke();y+=20;
+
   for(const g of groups){
     ctx.fillStyle='#29272f';ctx.font='800 31px system-ui, sans-serif';ctx.fillText(g.customer,pad,y+31);
-    const right=g.paid?'🟢 จ่ายครบ':`🔴 ${money(g.amount)} ฿`;ctx.fillStyle=g.paid?'#2f9b67':'#dc3d52';ctx.font='800 30px system-ui, sans-serif';ctx.textAlign='right';ctx.fillText(right,W-pad,y+31);ctx.textAlign='left';
-    if(!g.paid){ctx.font='600 21px system-ui, sans-serif';ctx.textAlign='right';ctx.fillText(`ค้าง ${g.days} วัน • ${g.unpaid.length} รายการ`,W-pad,y+60);ctx.textAlign='left'} y+=76;
-    if(g.shown.length){ctx.fillStyle='#faf8fb';let blockH=12;ctx.font='26px system-ui, sans-serif';g.shown.forEach(s=>{const txt=`${thaiDate(s.date)} • ${s.product} ${s.qty} แก้ว`;blockH+=Math.max(38,canvasWrap(ctx,txt,690).length*32)});ctx.fillRect(pad,y,W-pad*2,blockH);y+=8;
-      for(const s of g.shown){const txt=`${thaiDate(s.date)} • ${s.product} ${s.qty} แก้ว`;ctx.fillStyle='#77727f';ctx.font='26px system-ui, sans-serif';const lines=canvasWrap(ctx,txt,690);lines.forEach((ln,i)=>ctx.fillText(ln,pad+18,y+28+i*32));ctx.fillStyle='#5d5962';ctx.font='700 26px system-ui, sans-serif';ctx.textAlign='right';ctx.fillText(`${money(s.total)} ฿`,W-pad-18,y+28);ctx.textAlign='left';y+=Math.max(38,lines.length*32)}y+=8}
+    let mainText, mainColor, subText='';
+    if(g.paid){
+      mainText='🟢 จ่ายครบ'; mainColor='#2f9b67';
+    }else if(g.days===0){
+      mainText=`🟡 ${money(g.amount)} ฿`; mainColor='#d99a00';
+      subText=`ยังไม่จ่าย • ${g.unpaid.length} รายการ`;
+    }else{
+      mainText=`🔴 ${money(g.amount)} ฿`; mainColor='#dc3d52';
+      subText=`ค้าง ${g.days} วัน • ${g.unpaid.length} รายการ`;
+    }
+    ctx.fillStyle=mainColor;ctx.font='800 30px system-ui, sans-serif';ctx.textAlign='right';ctx.fillText(mainText,W-pad,y+31);
+    if(subText){ctx.font='600 21px system-ui, sans-serif';ctx.fillText(subText,W-pad,y+60)}
+    ctx.textAlign='left'; y+=76;
+
+    if(g.shown.length){
+      ctx.font='26px system-ui, sans-serif';
+      let heights=g.shown.map(s=>Math.max(46,canvasWrap(ctx,`${thaiDate(s.date)} • ${s.product} ${s.qty} แก้ว`,610).length*32));
+      let blockH=16+heights.reduce((a,b)=>a+b,0);
+      ctx.fillStyle='#faf8fb';ctx.fillRect(pad,y,W-pad*2,blockH);y+=8;
+      g.shown.forEach((s,idx)=>{
+        const txt=`${thaiDate(s.date)} • ${s.product} ${s.qty} แก้ว`;
+        ctx.fillStyle='#77727f';ctx.font='26px system-ui, sans-serif';
+        const lines=canvasWrap(ctx,txt,610); lines.forEach((ln,i)=>ctx.fillText(ln,pad+18,y+28+i*32));
+        ctx.textAlign='right';ctx.font='700 23px system-ui, sans-serif';
+        if(!g.paid){
+          const d=daysBetweenDates(s.date,date);
+          ctx.fillStyle=d===0?'#d99a00':'#dc3d52';
+          ctx.fillText(d===0?'🟡 วันนี้':`🔴 ค้าง ${d} วัน`,W-pad-118,y+27);
+        }
+        ctx.fillStyle='#5d5962';ctx.font='700 26px system-ui, sans-serif';ctx.fillText(`${money(s.total)} ฿`,W-pad-18,y+28);
+        ctx.textAlign='left'; y+=heights[idx];
+      });
+      y+=8;
+    }
     ctx.strokeStyle='#f0edf2';ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.stroke();y+=rowGap;
   }
   ctx.fillStyle='#f1edfa';ctx.fillRect(pad,y,W-pad*2,76);ctx.fillStyle='#29272f';ctx.font='800 30px system-ui, sans-serif';ctx.fillText('ยอดค้างทั้งหมด',pad+20,y+48);ctx.textAlign='right';ctx.fillText(`${money(grand)} ฿`,W-pad-20,y+48);ctx.textAlign='left';
