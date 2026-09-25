@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fighter-coffee-pwa-v2';
+const CACHE_NAME = 'fighter-coffee-v3-line-share';
 const APP_SHELL = [
   './',
   './index.html',

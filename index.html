@@ -75,6 +75,8 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(13
 .modal h3{font-size:18px}
 .toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%) translateY(15px);background:#29252f;color:#fff;padding:10px 15px;border-radius:12px;font-size:13px;opacity:0;pointer-events:none;transition:.2s;z-index:100;max-width:90%;text-align:center}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .month-title{font-weight:800;margin:17px 0 8px}
+
+.line-share-card{border:1px solid #ddd6ee;background:#fff}.line-mode{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 12px}.line-mode .btn.active{background:var(--purple);color:#fff}.line-preview{border:1px solid var(--line);border-radius:14px;padding:11px;background:#fff}.line-person{padding:8px 1px;border-bottom:1px solid #f0edf2}.line-person:last-child{border-bottom:0}.line-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.line-name{font-weight:800}.line-state{font-weight:850;text-align:right;white-space:nowrap}.line-state.ok{color:var(--green)}.line-state.due{color:var(--red)}.line-age{font-size:11px;margin-top:2px}.line-items{background:#faf8fb;border-radius:9px;padding:5px 8px;margin-top:5px}.line-sub{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:var(--muted);padding:2px 0}.line-sub b{color:#5d5962;white-space:nowrap}.line-grand{display:flex;justify-content:space-between;font-weight:850;background:var(--purple-light);border-radius:11px;padding:10px 11px;margin-top:9px}
 @media(min-width:621px){.app{border-left:1px solid var(--line);border-right:1px solid var(--line)}}
 </style>
 </head>
@@ -118,6 +120,15 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(13
       <div class="stat"><small>ยอดขายทั้งหมด</small><strong id="sumAll">0</strong></div>
       <div class="stat"><small>ยอดจ่ายแล้ว</small><strong id="sumPaid">0</strong></div>
       <div class="stat"><small>ยอดค้างชำระ</small><strong id="sumUnpaid">0</strong></div>
+    </div>
+    <div class="card line-share-card">
+      <div class="section-title"><h3>📸 สรุปส่ง LINE</h3><span class="mini">สร้างเป็น PNG ภาพเดียว</span></div>
+      <div class="line-mode">
+        <button id="lineCompactBtn" class="btn light active" onclick="setLineMode('compact')">กระชับ</button>
+        <button id="lineDetailBtn" class="btn light" onclick="setLineMode('detail')">รายละเอียดทั้งหมด</button>
+      </div>
+      <div id="linePreview" class="line-preview"></div>
+      <button class="btn primary full" style="margin-top:11px" onclick="shareLineSummary()">📸 บันทึก / ส่ง LINE</button>
     </div>
     <div class="card">
       <div class="section-title"><h3 id="summaryTitle">รายการวันนี้</h3><span class="mini" id="summaryCount"></span></div>
@@ -320,6 +331,74 @@ function saleCard(s,actions=false){
     ${actions?`<div class="item-actions">${!s.paid?`<button class="btn green" onclick="markPaid('${s.id}')">✓ รับเงินแล้ว</button>`:''}<button class="btn red" onclick="deleteSale('${s.id}')">🗑 เคลียร์รายการ</button></div>`:''}
   </div>`;
 }
+
+let lineShareMode='compact';
+function setLineMode(mode){
+  lineShareMode=mode;
+  document.getElementById('lineCompactBtn')?.classList.toggle('active',mode==='compact');
+  document.getElementById('lineDetailBtn')?.classList.toggle('active',mode==='detail');
+  renderLinePreview();
+}
+function getLineSummaryData(){
+  const date=document.getElementById('summaryDate').value||todayKey();
+  const map={};
+  sales.forEach(s=>{
+    const relevant=(s.date===date)||(!s.paid&&s.date<date); if(!relevant)return;
+    const key=s.customer.trim().toLowerCase();
+    if(!map[key])map[key]={customer:s.customer,items:[]}; map[key].items.push(s);
+  });
+  const groups=Object.values(map).map(g=>{
+    const todayItems=g.items.filter(s=>s.date===date).sort((a,b)=>a.createdAt?.localeCompare?.(b.createdAt||'')||0);
+    const unpaid=g.items.filter(s=>!s.paid).sort((a,b)=>a.date.localeCompare(b.date));
+    const paid=unpaid.length===0;
+    const amount=unpaid.reduce((a,s)=>a+s.total,0);
+    const days=paid?0:Math.max(...unpaid.map(s=>daysBetweenDates(s.date,date)));
+    const shown=lineShareMode==='detail'?(paid?todayItems:unpaid):(!paid&&unpaid.length>1?unpaid:[]);
+    return {...g,todayItems,unpaid,paid,amount,days,shown};
+  });
+  groups.sort((a,b)=>Number(b.paid)-Number(a.paid)||(a.paid?a.customer.localeCompare(b.customer,'th'):b.days-a.days||a.customer.localeCompare(b.customer,'th')));
+  return {date,groups,grand:groups.reduce((a,g)=>a+g.amount,0)};
+}
+function renderLinePreview(){
+  const el=document.getElementById('linePreview'); if(!el)return;
+  const {date,groups,grand}=getLineSummaryData();
+  if(!groups.length){el.innerHTML='<div class="empty">ไม่มีรายการสำหรับวันที่เลือก</div>';return}
+  el.innerHTML=`<div class="section-title" style="margin-bottom:3px"><strong>สรุป ${thaiDate(date)}</strong><span class="mini">${groups.length} คน</span></div>`+groups.map(g=>{
+    const state=g.paid?`<div class="line-state ok">🟢 จ่ายครบ</div>`:`<div class="line-state due">🔴 ${money(g.amount)} ฿<div class="line-age">ค้าง ${g.days} วัน • ${g.unpaid.length} รายการ</div></div>`;
+    const rows=g.shown.length?`<div class="line-items">${g.shown.map(s=>`<div class="line-sub"><span>${thaiDate(s.date)} • ${esc(s.product)} ${s.qty} แก้ว</span><b>${money(s.total)} ฿</b></div>`).join('')}</div>`:'';
+    return `<div class="line-person"><div class="line-top"><div class="line-name">${esc(g.customer)}</div>${state}</div>${rows}</div>`;
+  }).join('')+`<div class="line-grand"><span>ยอดค้างทั้งหมด</span><span>${money(grand)} ฿</span></div>`;
+}
+function canvasWrap(ctx,text,maxWidth){
+  const chars=[...String(text)], lines=[]; let line='';
+  for(const ch of chars){const test=line+ch;if(ctx.measureText(test).width>maxWidth&&line){lines.push(line);line=ch}else line=test} if(line)lines.push(line);return lines;
+}
+async function makeLinePng(){
+  const {date,groups,grand}=getLineSummaryData(); if(!groups.length)throw new Error('ไม่มีรายการสำหรับวันที่เลือก');
+  const W=1080,pad=58,rowGap=12; const canvas=document.createElement('canvas'); const ctx=canvas.getContext('2d');
+  ctx.font='700 34px system-ui, sans-serif';
+  let H=175;
+  groups.forEach(g=>{H+=82; if(g.shown.length){g.shown.forEach(s=>{ctx.font='26px system-ui, sans-serif';const txt=`${thaiDate(s.date)} • ${s.product} ${s.qty} แก้ว`;H+=Math.max(38,canvasWrap(ctx,txt,690).length*32)});H+=14}H+=rowGap}); H+=125;
+  canvas.width=W;canvas.height=Math.max(H,400);ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,canvas.height);
+  let y=62;ctx.fillStyle='#29272f';ctx.font='800 42px system-ui, sans-serif';ctx.fillText('☕ Fighter Coffee',pad,y);y+=55;ctx.font='700 31px system-ui, sans-serif';ctx.fillText(`สรุป ${thaiDate(date)} • ${groups.length} คน`,pad,y);y+=28;ctx.strokeStyle='#e8e5ed';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.stroke();y+=28;
+  for(const g of groups){
+    ctx.fillStyle='#29272f';ctx.font='800 31px system-ui, sans-serif';ctx.fillText(g.customer,pad,y+31);
+    const right=g.paid?'🟢 จ่ายครบ':`🔴 ${money(g.amount)} ฿`;ctx.fillStyle=g.paid?'#2f9b67':'#dc3d52';ctx.font='800 30px system-ui, sans-serif';ctx.textAlign='right';ctx.fillText(right,W-pad,y+31);ctx.textAlign='left';
+    if(!g.paid){ctx.font='600 21px system-ui, sans-serif';ctx.textAlign='right';ctx.fillText(`ค้าง ${g.days} วัน • ${g.unpaid.length} รายการ`,W-pad,y+60);ctx.textAlign='left'} y+=76;
+    if(g.shown.length){ctx.fillStyle='#faf8fb';let blockH=12;ctx.font='26px system-ui, sans-serif';g.shown.forEach(s=>{const txt=`${thaiDate(s.date)} • ${s.product} ${s.qty} แก้ว`;blockH+=Math.max(38,canvasWrap(ctx,txt,690).length*32)});ctx.fillRect(pad,y,W-pad*2,blockH);y+=8;
+      for(const s of g.shown){const txt=`${thaiDate(s.date)} • ${s.product} ${s.qty} แก้ว`;ctx.fillStyle='#77727f';ctx.font='26px system-ui, sans-serif';const lines=canvasWrap(ctx,txt,690);lines.forEach((ln,i)=>ctx.fillText(ln,pad+18,y+28+i*32));ctx.fillStyle='#5d5962';ctx.font='700 26px system-ui, sans-serif';ctx.textAlign='right';ctx.fillText(`${money(s.total)} ฿`,W-pad-18,y+28);ctx.textAlign='left';y+=Math.max(38,lines.length*32)}y+=8}
+    ctx.strokeStyle='#f0edf2';ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.stroke();y+=rowGap;
+  }
+  ctx.fillStyle='#f1edfa';ctx.fillRect(pad,y,W-pad*2,76);ctx.fillStyle='#29272f';ctx.font='800 30px system-ui, sans-serif';ctx.fillText('ยอดค้างทั้งหมด',pad+20,y+48);ctx.textAlign='right';ctx.fillText(`${money(grand)} ฿`,W-pad-20,y+48);ctx.textAlign='left';
+  return await new Promise(res=>canvas.toBlob(res,'image/png',1));
+}
+async function shareLineSummary(){
+  try{
+    const blob=await makeLinePng();const date=document.getElementById('summaryDate').value||todayKey();const file=new File([blob],`fighter-coffee-${date}-${lineShareMode}.png`,{type:'image/png'});
+    if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({files:[file],title:'Fighter Coffee'});return}
+    const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);toast('บันทึกรูป PNG แล้ว ✓');
+  }catch(e){if(e?.name!=='AbortError')toast(e.message||'สร้างรูปไม่สำเร็จ')}
+}
 function renderSummary(){
   const date=document.getElementById('summaryDate').value||todayKey();
   document.getElementById('summaryDate').value=date;
@@ -425,6 +504,7 @@ function renderSummary(){
         </div>`;
       }).join('')
     : '<div class="empty">ไม่มีรายการของวันที่เลือก</div>';
+  renderLinePreview();
 }
 
 function daysBetweenDates(from,to){
