@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fighter-coffee-v8-clean-detail-status';
+const CACHE_NAME = 'fighter-coffee-v9-red-overdue-text';
 const APP_SHELL = [
   './',
   './index.html',

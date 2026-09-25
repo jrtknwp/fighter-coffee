@@ -422,9 +422,16 @@ async function makeLinePng(){
       ctx.fillStyle='#faf8fb';ctx.fillRect(pad,y,W-pad*2,blockH);y+=8;
       g.shown.forEach((s,idx)=>{
         const d=!g.paid?daysBetweenDates(s.date,date):0;
-        const txt=`${thaiDate(s.date)} • ${s.product} ${s.qty} แก้ว${d>0?` • 🔴 ค้าง ${d} วัน`:''}`;
-        ctx.fillStyle='#77727f';ctx.font='26px system-ui, sans-serif';
-        const lines=canvasWrap(ctx,txt,760); lines.forEach((ln,i)=>ctx.fillText(ln,pad+18,y+28+i*32));
+        const baseTxt=`${thaiDate(s.date)} • ${s.product} ${s.qty} แก้ว`;
+        ctx.font='26px system-ui, sans-serif';
+        ctx.fillStyle='#77727f';
+        ctx.fillText(baseTxt,pad+18,y+28);
+        if(d>0){
+          const baseW=ctx.measureText(baseTxt).width;
+          ctx.fillStyle='#dc3d52';
+          ctx.font='700 26px system-ui, sans-serif';
+          ctx.fillText(` • 🔴 ค้าง ${d} วัน`,pad+18+baseW,y+28);
+        }
         ctx.textAlign='right';
         ctx.fillStyle='#5d5962';ctx.font='700 26px system-ui, sans-serif';ctx.fillText(`${money(s.total)} ฿`,W-pad-18,y+28);
         ctx.textAlign='left'; y+=heights[idx];
