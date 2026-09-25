@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fighter-coffee-v3-line-share';
+const CACHE_NAME = 'fighter-coffee-v4-clean-summary';
 const APP_SHELL = [
   './',
   './index.html',

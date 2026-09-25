@@ -130,10 +130,6 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(13
       <div id="linePreview" class="line-preview"></div>
       <button class="btn primary full" style="margin-top:11px" onclick="shareLineSummary()">📸 บันทึก / ส่ง LINE</button>
     </div>
-    <div class="card">
-      <div class="section-title"><h3 id="summaryTitle">รายการวันนี้</h3><span class="mini" id="summaryCount"></span></div>
-      <div id="summaryList" class="list"></div>
-    </div>
   </section>
 
   <section id="page-unpaid" class="page">
@@ -403,7 +399,7 @@ function renderSummary(){
   const date=document.getElementById('summaryDate').value||todayKey();
   document.getElementById('summaryDate').value=date;
 
-  // ยอดของ "วันที่เลือก" ยังคงคำนวณเฉพาะรายการของวันนั้น
+  // ยอดของวันที่เลือกคำนวณเฉพาะรายการในวันนั้น
   const dayArr=sales.filter(s=>s.date===date);
   const total=dayArr.reduce((a,s)=>a+s.total,0);
   const paid=dayArr.filter(s=>s.paid).reduce((a,s)=>a+s.total,0);
@@ -411,99 +407,8 @@ function renderSummary(){
   document.getElementById('sumAll').textContent=money(total)+' ฿';
   document.getElementById('sumPaid').textContent=money(paid)+' ฿';
   document.getElementById('sumUnpaid').textContent=money(total-paid)+' ฿';
-  document.getElementById('summaryTitle').textContent='สรุป '+thaiDate(date);
 
-  // สำหรับหน้าที่แคปส่ง LINE:
-  // 1) รายการของวันที่เลือก
-  // 2) ดึง "รายการเก่าที่ยังไม่จ่าย" ของลูกค้าชื่อเดียวกันมารวมด้วย
-  // 3) ลูกค้าชื่อเดียวกันแสดงเป็นคนเดียว ไม่แยกเป็นหลายการ์ด
-  const customers={};
-
-  sales.forEach(s=>{
-    const key=s.customer.trim().toLowerCase();
-    const relevant = (s.date===date) || (!s.paid && s.date<date);
-    if(!relevant) return;
-
-    if(!customers[key]){
-      customers[key]={
-        customer:s.customer,
-        items:[],
-        totalUnpaid:0,
-        hasToday:false,
-        todayPaid:false
-      };
-    }
-
-    customers[key].items.push(s);
-    if(!s.paid && s.date<date) customers[key].totalUnpaid+=s.total;
-    if(s.date===date){
-      customers[key].hasToday=true;
-      if(s.paid) customers[key].todayPaid=true;
-    }
-  });
-
-  const groups=Object.values(customers).sort((a,b)=>{
-    const au=a.items.filter(s=>!s.paid).map(s=>daysBetweenDates(s.date,date));
-    const bu=b.items.filter(s=>!s.paid).map(s=>daysBetweenDates(s.date,date));
-    const aMax=au.length?Math.max(...au):0;
-    const bMax=bu.length?Math.max(...bu):0;
-    return bMax-aMax || a.customer.localeCompare(b.customer,'th');
-  });
-
-  document.getElementById('summaryCount').textContent=groups.length+' คน';
-
-  document.getElementById('summaryList').innerHTML=groups.length
-    ? groups.map(g=>{
-        const unpaidBefore=g.items.filter(s=>!s.paid && s.date<date).sort((a,b)=>a.date.localeCompare(b.date));
-        const todayItems=g.items.filter(s=>s.date===date);
-        const allUnpaid=[...unpaidBefore,...todayItems.filter(s=>!s.paid)];
-        const totalAllUnpaid=allUnpaid.reduce((a,s)=>a+s.total,0);
-
-        let badge='';
-        if(allUnpaid.length){
-          const maxDays=Math.max(...allUnpaid.map(s=>daysBetweenDates(s.date,date)));
-          badge=maxDays===0
-            ? '<span class="status today">🟡 ยังไม่จ่าย</span>'
-            : `<span class="status overdue">🔴 ค้าง ${maxDays} วัน</span>`;
-        }else{
-          badge='<span class="status paid">🟢 จ่ายแล้ว</span>';
-        }
-
-        const lines=[];
-
-        // รายการเก่าที่ยังไม่จ่าย
-        unpaidBefore.forEach(s=>{
-          const d=daysBetweenDates(s.date,date);
-          lines.push(`<div class="meta summary-line">
-            <span>${thaiDate(s.date)} • ${esc(s.product)} ${s.qty} แก้ว</span>
-            <span style="color:var(--red);font-weight:800;white-space:nowrap">${money(s.total)} ฿ • 🔴 ค้าง ${d} วัน</span>
-          </div>`);
-        });
-
-        // รายการของวันที่เลือก
-        todayItems.forEach(s=>{
-          lines.push(`<div class="meta summary-line">
-            <span>${thaiDate(s.date)} • ${esc(s.product)} ${s.qty} แก้ว</span>
-            <span style="font-weight:800;white-space:nowrap">${money(s.total)} ฿ ${s.paid?'• 🟢 จ่ายแล้ว':'• 🟡 ยังไม่จ่าย'}</span>
-          </div>`);
-        });
-
-        return `<div class="item">
-          <div class="item-top">
-            <div>
-              <div class="name">${esc(g.customer)}</div>
-              ${badge}
-            </div>
-            <div class="amount" style="${totalAllUnpaid?'color:var(--red)':''}">
-              ${totalAllUnpaid?money(totalAllUnpaid)+' ฿':'จ่ายครบ'}
-            </div>
-          </div>
-          <div style="margin-top:9px;border-top:1px solid var(--line);padding-top:7px">
-            ${lines.join('')}
-          </div>
-        </div>`;
-      }).join('')
-    : '<div class="empty">ไม่มีรายการของวันที่เลือก</div>';
+  // หน้า Summary ใช้สรุปส่ง LINE เป็นรายการหลักเพียงชุดเดียว
   renderLinePreview();
 }
 
