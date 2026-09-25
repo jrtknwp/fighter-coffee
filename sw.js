@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fighter-coffee-v10-clean-detail-rows';
+const CACHE_NAME = 'fighter-coffee-v12-three-line-modes';
 const APP_SHELL = [
   './',
   './index.html',

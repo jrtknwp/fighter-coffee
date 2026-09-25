@@ -126,6 +126,7 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(13
       <div class="line-mode">
         <button id="lineCompactBtn" class="btn light active" onclick="setLineMode('compact')">กระชับ</button>
         <button id="lineDetailBtn" class="btn light" onclick="setLineMode('detail')">รายละเอียดทั้งหมด</button>
+        <button id="lineUnpaidBtn" class="btn light" onclick="setLineMode('unpaid')">เฉพาะยังไม่จ่าย</button>
       </div>
       <div id="linePreview" class="line-preview"></div>
       <button class="btn primary full" style="margin-top:11px" onclick="shareLineSummary()">📸 บันทึก / ส่ง LINE</button>
@@ -333,27 +334,39 @@ function setLineMode(mode){
   lineShareMode=mode;
   document.getElementById('lineCompactBtn')?.classList.toggle('active',mode==='compact');
   document.getElementById('lineDetailBtn')?.classList.toggle('active',mode==='detail');
+  document.getElementById('lineUnpaidBtn')?.classList.toggle('active',mode==='unpaid');
   renderLinePreview();
 }
 function getLineSummaryData(){
-  const date=document.getElementById('summaryDate').value||todayKey();
+  const date=document.getElementById('summaryDate')?.value||todayISO();
+  const relevant=sales.filter(s=>s.date<=date && (s.date===date || !s.paid));
   const map={};
-  sales.forEach(s=>{
-    const relevant=(s.date===date)||(!s.paid&&s.date<date); if(!relevant)return;
-    const key=s.customer.trim().toLowerCase();
-    if(!map[key])map[key]={customer:s.customer,items:[]}; map[key].items.push(s);
+  relevant.forEach(s=>{
+    const k=s.customer.trim().toLowerCase();
+    if(!map[k])map[k]={customer:s.customer,all:[],today:[],unpaid:[]};
+    map[k].all.push(s);
+    if(s.date===date)map[k].today.push(s);
+    if(!s.paid)map[k].unpaid.push(s);
   });
-  const groups=Object.values(map).map(g=>{
-    const todayItems=g.items.filter(s=>s.date===date).sort((a,b)=>a.createdAt?.localeCompare?.(b.createdAt||'')||0);
-    const unpaid=g.items.filter(s=>!s.paid).sort((a,b)=>a.date.localeCompare(b.date));
-    const paid=unpaid.length===0;
-    const amount=unpaid.reduce((a,s)=>a+s.total,0);
-    const days=paid?0:Math.max(...unpaid.map(s=>daysBetweenDates(s.date,date)));
-    const shown=lineShareMode==='detail'?(paid?todayItems:unpaid):(!paid&&unpaid.length>1?unpaid:[]);
-    return {...g,todayItems,unpaid,paid,amount,days,shown};
+  let groups=Object.values(map).map(g=>{
+    const paid=g.unpaid.length===0;
+    const amount=g.unpaid.reduce((a,s)=>a+Number(s.total||0),0);
+    const days=paid?0:Math.max(...g.unpaid.map(s=>daysBetweenDates(s.date,date)));
+    const sorter=(a,b)=>a.date.localeCompare(b.date)||String(a.createdAt||'').localeCompare(String(b.createdAt||''));
+    let shown=[];
+    if(lineShareMode==='detail') shown=g.all.slice().sort(sorter);
+    else if(lineShareMode==='unpaid') shown=g.unpaid.slice().sort(sorter);
+    else if(!paid && g.unpaid.length>1) shown=g.unpaid.slice().sort(sorter);
+    return {...g,paid,amount,days,shown};
   });
-  groups.sort((a,b)=>Number(b.paid)-Number(a.paid)||(a.paid?a.customer.localeCompare(b.customer,'th'):b.days-a.days||a.customer.localeCompare(b.customer,'th')));
-  return {date,groups,grand:groups.reduce((a,g)=>a+g.amount,0)};
+  if(lineShareMode==='unpaid')groups=groups.filter(g=>!g.paid);
+  groups.sort((a,b)=>{
+    if(a.paid!==b.paid)return a.paid?-1:1;
+    if(!a.paid && a.days!==b.days)return b.days-a.days;
+    return a.customer.localeCompare(b.customer,'th');
+  });
+  const grand=groups.reduce((a,g)=>a+g.amount,0);
+  return {date,groups,grand};
 }
 function renderLinePreview(){
   const el=document.getElementById('linePreview'); if(!el)return;
