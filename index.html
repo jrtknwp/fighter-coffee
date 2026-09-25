@@ -361,9 +361,7 @@ function renderLinePreview(){
   if(!groups.length){el.innerHTML='<div class="empty">ไม่มีรายการสำหรับวันที่เลือก</div>';return}
   const rowStatus=s=>{
     const d=daysBetweenDates(s.date,date);
-    return d===0
-      ? `<span style="color:#d99a00;font-weight:800">🟡 วันนี้</span>`
-      : `<span style="color:var(--red);font-weight:800">🔴 ค้าง ${d} วัน</span>`;
+    return d>0 ? `<span style="color:var(--red);font-weight:800">🔴 ค้าง ${d} วัน</span>` : '';
   };
   el.innerHTML=`<div class="line-report-head"><img src="./fighter-logo.png" alt="Fighter Urban Coffee"><div class="line-report-title">สรุป ${thaiDate(date)} • ${groups.length} คน</div></div>`+groups.map(g=>{
     let state;
@@ -374,7 +372,7 @@ function renderLinePreview(){
     }else{
       state=`<div class="line-state due">🔴 ${money(g.amount)} ฿<div class="line-age">ค้าง ${g.days} วัน • ${g.unpaid.length} รายการ</div></div>`;
     }
-    const rows=g.shown.length?`<div class="line-items">${g.shown.map(s=>`<div class="line-sub"><span>${thaiDate(s.date)} • ${esc(s.product)} ${s.qty} แก้ว${!g.paid?' • '+rowStatus(s):''}</span><b>${money(s.total)} ฿</b></div>`).join('')}</div>`:'';
+    const rows=g.shown.length?`<div class="line-items">${g.shown.map(s=>`<div class="line-sub"><span>${thaiDate(s.date)} • ${esc(s.product)} ${s.qty} แก้ว${!g.paid && rowStatus(s) ? ' • '+rowStatus(s) : ''}</span><b>${money(s.total)} ฿</b></div>`).join('')}</div>`:'';
     return `<div class="line-person"><div class="line-top"><div class="line-name">${esc(g.customer)}</div>${state}</div>${rows}</div>`;
   }).join('')+`<div class="line-grand"><span>ยอดค้างทั้งหมด</span><span>${money(grand)} ฿</span></div>`;
 }
@@ -423,15 +421,11 @@ async function makeLinePng(){
       let blockH=16+heights.reduce((a,b)=>a+b,0);
       ctx.fillStyle='#faf8fb';ctx.fillRect(pad,y,W-pad*2,blockH);y+=8;
       g.shown.forEach((s,idx)=>{
-        const txt=`${thaiDate(s.date)} • ${s.product} ${s.qty} แก้ว`;
+        const d=!g.paid?daysBetweenDates(s.date,date):0;
+        const txt=`${thaiDate(s.date)} • ${s.product} ${s.qty} แก้ว${d>0?` • 🔴 ค้าง ${d} วัน`:''}`;
         ctx.fillStyle='#77727f';ctx.font='26px system-ui, sans-serif';
-        const lines=canvasWrap(ctx,txt,610); lines.forEach((ln,i)=>ctx.fillText(ln,pad+18,y+28+i*32));
-        ctx.textAlign='right';ctx.font='700 23px system-ui, sans-serif';
-        if(!g.paid){
-          const d=daysBetweenDates(s.date,date);
-          ctx.fillStyle=d===0?'#d99a00':'#dc3d52';
-          ctx.fillText(d===0?'🟡 วันนี้':`🔴 ค้าง ${d} วัน`,W-pad-118,y+27);
-        }
+        const lines=canvasWrap(ctx,txt,760); lines.forEach((ln,i)=>ctx.fillText(ln,pad+18,y+28+i*32));
+        ctx.textAlign='right';
         ctx.fillStyle='#5d5962';ctx.font='700 26px system-ui, sans-serif';ctx.fillText(`${money(s.total)} ฿`,W-pad-18,y+28);
         ctx.textAlign='left'; y+=heights[idx];
       });

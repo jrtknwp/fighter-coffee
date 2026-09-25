@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fighter-coffee-v7-payment-status';
+const CACHE_NAME = 'fighter-coffee-v8-clean-detail-status';
 const APP_SHELL = [
   './',
   './index.html',
