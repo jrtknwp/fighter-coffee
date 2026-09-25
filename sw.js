@@ -1,8 +1,9 @@
-const CACHE_NAME = 'fighter-coffee-v4-clean-summary';
+const CACHE_NAME = 'fighter-coffee-v6-brand-logo';
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
+  './fighter-logo.png',
   './icons/icon-192.png',
   './icons/icon-512.png'
 ];

@@ -26,7 +26,7 @@ button,input,select{font:inherit}
 button{border:0;cursor:pointer}
 .app{max-width:620px;margin:auto;min-height:100vh;padding-bottom:82px}
 header{padding:calc(16px + env(safe-area-inset-top)) 18px 14px;background:#fff;position:sticky;top:0;z-index:10;border-bottom:1px solid var(--line)}
-.brand{font-size:21px;font-weight:800}
+.brand{font-size:21px;font-weight:800}.brand-logo{display:block;width:145px;max-width:42vw;height:auto}.brand-wrap{display:flex;align-items:center;min-height:38px}
 .sub{font-size:12px;color:var(--muted);margin-top:2px}
 main{padding:15px}
 .page{display:none}.page.active{display:block}
@@ -83,7 +83,7 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(13
 <body>
 <div class="app">
 <header>
-  <div class="brand">☕ Fighter Coffee</div>
+  <div class="brand-wrap"><img class="brand-logo" src="./fighter-logo.png" alt="Fighter Urban Coffee"></div>
   <div class="sub">บันทึกยอดขาย • ติดตามค้างชำระ • ข้อมูลเก็บในเครื่อง</div>
 </header>
 
@@ -373,10 +373,16 @@ async function makeLinePng(){
   const {date,groups,grand}=getLineSummaryData(); if(!groups.length)throw new Error('ไม่มีรายการสำหรับวันที่เลือก');
   const W=1080,pad=58,rowGap=12; const canvas=document.createElement('canvas'); const ctx=canvas.getContext('2d');
   ctx.font='700 34px system-ui, sans-serif';
-  let H=175;
+  let H=205;
   groups.forEach(g=>{H+=82; if(g.shown.length){g.shown.forEach(s=>{ctx.font='26px system-ui, sans-serif';const txt=`${thaiDate(s.date)} • ${s.product} ${s.qty} แก้ว`;H+=Math.max(38,canvasWrap(ctx,txt,690).length*32)});H+=14}H+=rowGap}); H+=125;
   canvas.width=W;canvas.height=Math.max(H,400);ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,canvas.height);
-  let y=62;ctx.fillStyle='#29272f';ctx.font='800 42px system-ui, sans-serif';ctx.fillText('☕ Fighter Coffee',pad,y);y+=55;ctx.font='700 31px system-ui, sans-serif';ctx.fillText(`สรุป ${thaiDate(date)} • ${groups.length} คน`,pad,y);y+=28;ctx.strokeStyle='#e8e5ed';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.stroke();y+=28;
+  let y=42;
+  // โลโก้เล็กด้านบนของ PNG เพื่อให้เป็นแบรนด์ แต่ไม่กินพื้นที่รายชื่อ
+  try{
+    const logo=await new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=reject;im.src='./fighter-logo.png'});
+    const logoW=205,logoH=logo.height*(logoW/logo.width);ctx.drawImage(logo,pad,y,logoW,logoH);y+=logoH+25;
+  }catch(e){ctx.fillStyle='#162b59';ctx.font='800 30px system-ui, sans-serif';ctx.fillText('FIGHTER',pad,y+30);y+=55}
+  ctx.fillStyle='#29272f';ctx.font='700 31px system-ui, sans-serif';ctx.fillText(`สรุป ${thaiDate(date)} • ${groups.length} คน`,pad,y);y+=28;ctx.strokeStyle='#e8e5ed';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.stroke();y+=28;
   for(const g of groups){
     ctx.fillStyle='#29272f';ctx.font='800 31px system-ui, sans-serif';ctx.fillText(g.customer,pad,y+31);
     const right=g.paid?'🟢 จ่ายครบ':`🔴 ${money(g.amount)} ฿`;ctx.fillStyle=g.paid?'#2f9b67':'#dc3d52';ctx.font='800 30px system-ui, sans-serif';ctx.textAlign='right';ctx.fillText(right,W-pad,y+31);ctx.textAlign='left';
