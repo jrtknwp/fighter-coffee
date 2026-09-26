@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fighter-coffee-v12-three-line-modes';
+const CACHE_NAME = 'fighter-coffee-v13-sale-date-live-status';
 const APP_SHELL = [
   './',
   './index.html',

@@ -338,35 +338,43 @@ function setLineMode(mode){
   renderLinePreview();
 }
 function getLineSummaryData(){
-  const date=document.getElementById('summaryDate')?.value||todayISO();
-  const relevant=sales.filter(s=>s.date<=date && (s.date===date || !s.paid));
+  const selectedDate=document.getElementById('summaryDate')?.value||todayISO();
+  const statusDate=todayKey();
+
+  // "เฉพาะยังไม่จ่าย" = ลูกหนี้ปัจจุบันจากทุกวันที่ยังค้าง
+  // อีก 2 โหมด = ยึดวันที่ขายที่เลือก แต่สถานะค้างคำนวณเทียบกับวันนี้จริง
+  const relevant=lineShareMode==='unpaid'
+    ? sales.filter(s=>!s.paid)
+    : sales.filter(s=>s.date===selectedDate);
+
   const map={};
   relevant.forEach(s=>{
     const k=s.customer.trim().toLowerCase();
-    if(!map[k])map[k]={customer:s.customer,all:[],today:[],unpaid:[]};
+    if(!map[k])map[k]={customer:s.customer,all:[],unpaid:[]};
     map[k].all.push(s);
-    if(s.date===date)map[k].today.push(s);
     if(!s.paid)map[k].unpaid.push(s);
   });
+
+  const sorter=(a,b)=>a.date.localeCompare(b.date)||String(a.createdAt||'').localeCompare(String(b.createdAt||''));
   let groups=Object.values(map).map(g=>{
     const paid=g.unpaid.length===0;
     const amount=g.unpaid.reduce((a,s)=>a+Number(s.total||0),0);
-    const days=paid?0:Math.max(...g.unpaid.map(s=>daysBetweenDates(s.date,date)));
-    const sorter=(a,b)=>a.date.localeCompare(b.date)||String(a.createdAt||'').localeCompare(String(b.createdAt||''));
+    const days=paid?0:Math.max(...g.unpaid.map(s=>daysBetweenDates(s.date,statusDate)));
     let shown=[];
     if(lineShareMode==='detail') shown=g.all.slice().sort(sorter);
     else if(lineShareMode==='unpaid') shown=g.unpaid.slice().sort(sorter);
     else if(!paid && g.unpaid.length>1) shown=g.unpaid.slice().sort(sorter);
     return {...g,paid,amount,days,shown};
   });
-  if(lineShareMode==='unpaid')groups=groups.filter(g=>!g.paid);
+
   groups.sort((a,b)=>{
     if(a.paid!==b.paid)return a.paid?-1:1;
     if(!a.paid && a.days!==b.days)return b.days-a.days;
     return a.customer.localeCompare(b.customer,'th');
   });
+
   const grand=groups.reduce((a,g)=>a+g.amount,0);
-  return {date,groups,grand};
+  return {date:selectedDate,statusDate,groups,grand};
 }
 function renderLinePreview(){
   const el=document.getElementById('linePreview'); if(!el)return;
@@ -376,7 +384,10 @@ function renderLinePreview(){
     const d=daysBetweenDates(s.date,date);
     return d>0 ? `<span style="color:var(--red);font-weight:800">🔴 ค้าง ${d} วัน</span>` : '';
   };
-  el.innerHTML=`<div class="line-report-head"><img src="./fighter-logo.png" alt="Fighter Urban Coffee"><div class="line-report-title">สรุป ${thaiDate(date)} • ${groups.length} คน</div></div>`+groups.map(g=>{
+  const reportTitle=lineShareMode==='unpaid'
+    ? `ยอดค้างทั้งหมด • ${groups.length} คน`
+    : `สรุป ${thaiDate(date)} • ${groups.length} คน`;
+  el.innerHTML=`<div class="line-report-head"><img src="./fighter-logo.png" alt="Fighter Urban Coffee"><div class="line-report-title">${reportTitle}</div></div>`+groups.map(g=>{
     let state;
     if(g.paid){
       state=`<div class="line-state ok">🟢 จ่ายครบ</div>`;
@@ -408,7 +419,10 @@ async function makeLinePng(){
     ctx.fillStyle='#162b59';ctx.font='800 30px system-ui, sans-serif';ctx.fillText('FIGHTER',pad,y+34);
   }
   ctx.fillStyle='#29272f';ctx.font='700 31px system-ui, sans-serif';ctx.textAlign='right';
-  ctx.fillText(`สรุป ${thaiDate(date)} • ${groups.length} คน`,W-pad,y+Math.max(34,logoH*.58));
+  const pngTitle=lineShareMode==='unpaid'
+    ? `ยอดค้างทั้งหมด • ${groups.length} คน`
+    : `สรุป ${thaiDate(date)} • ${groups.length} คน`;
+  ctx.fillText(pngTitle,W-pad,y+Math.max(34,logoH*.58));
   ctx.textAlign='left'; y+=Math.max(logoH,58)+20;
   ctx.strokeStyle='#e8e5ed';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.stroke();y+=20;
 
