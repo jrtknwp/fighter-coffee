@@ -363,7 +363,7 @@ function getLineSummaryData(){
     let shown=[];
     if(lineShareMode==='detail') shown=g.all.slice().sort(sorter);
     else if(lineShareMode==='unpaid') shown=g.unpaid.slice().sort(sorter);
-    else if(!paid && g.unpaid.length>1) shown=g.unpaid.slice().sort(sorter);
+    else shown=[];
     return {...g,paid,amount,days,shown};
   });
 
