@@ -338,35 +338,32 @@ function setLineMode(mode){
   renderLinePreview();
 }
 function getLineSummaryData(){
-  const selectedDate=document.getElementById('summaryDate')?.value||todayISO();
+  const selectedDate=document.getElementById('summaryDate')?.value||todayKey();
   const statusDate=todayKey();
-  // Selected day's purchases + all earlier outstanding items; unpaid-only includes all outstanding dates.
-  const relevant=lineShareMode==='unpaid'
-    ? sales.filter(s=>!s.paid)
-    : sales.filter(s=>s.date===selectedDate || (!s.paid && s.date<selectedDate));
-  const map={};
-  relevant.forEach(s=>{
-    const k=s.customer.trim().toLowerCase();
-    if(!map[k])map[k]={customer:s.customer,all:[],unpaid:[]};
-    map[k].all.push(s);
-    if(!s.paid)map[k].unpaid.push(s);
+  // Every outstanding debt from any earlier date is carried into the report.
+  // Do not include future-dated debts in a past day's snapshot.
+  const relevant=sales.filter(s=>{
+    const day=String(s.date||'').slice(0,10);
+    if(lineShareMode==='unpaid')return !s.paid;
+    return day===selectedDate || (!s.paid && day<=selectedDate);
   });
-  const sorter=(a,b)=>a.date.localeCompare(b.date)||String(a.createdAt||'').localeCompare(String(b.createdAt||''));
-  const groups=Object.values(map).map(g=>{
+  const map=new Map();
+  relevant.forEach(s=>{
+    const name=String(s.customer||'').trim();
+    const key=name.normalize('NFC').toLocaleLowerCase('th-TH');
+    if(!map.has(key))map.set(key,{customer:name,all:[],unpaid:[]});
+    const g=map.get(key);g.all.push(s);if(!s.paid)g.unpaid.push(s);
+  });
+  const sorter=(a,b)=>String(a.date).localeCompare(String(b.date))||String(a.createdAt||'').localeCompare(String(b.createdAt||''));
+  const groups=[...map.values()].map(g=>{
     const paid=g.unpaid.length===0;
-    const amount=g.unpaid.reduce((a,s)=>a+Number(s.total||0),0);
-    const days=paid?0:Math.max(...g.unpaid.map(s=>daysBetweenDates(s.date,statusDate)));
-    let shown=[];
-    if(lineShareMode==='detail')shown=g.all.slice().sort(sorter);
-    else if(lineShareMode==='unpaid')shown=g.unpaid.slice().sort(sorter);
+    const amount=g.unpaid.reduce((n,s)=>n+Number(s.total||0),0);
+    const days=paid?0:Math.max(...g.unpaid.map(s=>daysBetweenDates(String(s.date).slice(0,10),statusDate)));
+    const shown=lineShareMode==='detail'?g.all.slice().sort(sorter):lineShareMode==='unpaid'?g.unpaid.slice().sort(sorter):[];
     return {...g,paid,amount,days,shown};
   });
-  groups.sort((a,b)=>{
-    if(a.paid!==b.paid)return a.paid?-1:1;
-    if(!a.paid&&a.days!==b.days)return b.days-a.days;
-    return a.customer.localeCompare(b.customer,'th');
-  });
-  return {date:selectedDate,statusDate,groups,grand:groups.reduce((a,g)=>a+g.amount,0)};
+  groups.sort((a,b)=>a.paid!==b.paid?(a.paid?-1:1):(!a.paid&&a.days!==b.days?b.days-a.days:a.customer.localeCompare(b.customer,'th')));
+  return {date:selectedDate,statusDate,groups,grand:groups.reduce((n,g)=>n+g.amount,0)};
 }
 function renderLinePreview(){
   const el=document.getElementById('linePreview'); if(!el)return;
@@ -521,7 +518,7 @@ function renderUnpaid(){
           <div style="margin-top:10px;border-top:1px solid var(--line);padding-top:8px">
             ${items.map(s=>`<div style="padding:6px 0;border-bottom:1px dashed var(--line)">
               <div class="meta" style="display:flex;justify-content:space-between;gap:8px;align-items:center">
-                <span>${esc(s.product)} ${s.qty} แก้ว</span>
+                <span>${thaiDate(String(s.date).slice(0,10))} • ${esc(s.product)} ${s.qty} แก้ว</span>
                 <span style="color:var(--red);font-weight:800;white-space:nowrap">${money(s.total)} บาท <input class="pay-check" type="checkbox" onchange="togglePaid('${s.id}',this.checked)"></span>
               </div>
               <div style="text-align:right;margin-top:4px">
