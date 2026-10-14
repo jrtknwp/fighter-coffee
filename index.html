@@ -324,7 +324,7 @@ function showPage(page){
 }
 function saleCard(s,actions=false){
   return `<div class="item">
-    <div class="item-top"><div><div class="name">${esc(s.customer)}</div><div class="meta">${lineShareMode==='unpaid'?'':thaiDate(s.date)+' • '}${esc(s.product)} ${s.qty} แก้ว</div>${statusHTML(s)}</div><div class="amount">${money(s.total)} บาท</div></div>
+    <div class="item-top"><div><div class="name">${esc(s.customer)}</div><div class="meta">${esc(s.product)} ${s.qty} แก้ว</div>${statusHTML(s)}</div><div class="amount">${money(s.total)} บาท</div></div>
     ${actions?`<div class="item-actions">${!s.paid?`<button class="btn green" onclick="markPaid('${s.id}')">✓ รับเงินแล้ว</button>`:''}<button class="btn red" onclick="deleteSale('${s.id}')">🗑 เคลียร์รายการ</button></div>`:''}
   </div>`;
 }
@@ -340,13 +340,10 @@ function setLineMode(mode){
 function getLineSummaryData(){
   const selectedDate=document.getElementById('summaryDate')?.value||todayISO();
   const statusDate=todayKey();
-
-  // "เฉพาะยังไม่จ่าย" = ลูกหนี้ปัจจุบันจากทุกวันที่ยังค้าง
-  // อีก 2 โหมด = ยึดวันที่ขายที่เลือก แต่สถานะค้างคำนวณเทียบกับวันนี้จริง
+  // Selected day's purchases + all earlier outstanding items; unpaid-only includes all outstanding dates.
   const relevant=lineShareMode==='unpaid'
     ? sales.filter(s=>!s.paid)
-    : sales.filter(s=>s.date===selectedDate);
-
+    : sales.filter(s=>s.date===selectedDate || (!s.paid && s.date<selectedDate));
   const map={};
   relevant.forEach(s=>{
     const k=s.customer.trim().toLowerCase();
@@ -354,27 +351,22 @@ function getLineSummaryData(){
     map[k].all.push(s);
     if(!s.paid)map[k].unpaid.push(s);
   });
-
   const sorter=(a,b)=>a.date.localeCompare(b.date)||String(a.createdAt||'').localeCompare(String(b.createdAt||''));
-  let groups=Object.values(map).map(g=>{
+  const groups=Object.values(map).map(g=>{
     const paid=g.unpaid.length===0;
     const amount=g.unpaid.reduce((a,s)=>a+Number(s.total||0),0);
     const days=paid?0:Math.max(...g.unpaid.map(s=>daysBetweenDates(s.date,statusDate)));
     let shown=[];
-    if(lineShareMode==='detail') shown=g.all.slice().sort(sorter);
-    else if(lineShareMode==='unpaid') shown=g.unpaid.slice().sort(sorter);
-    else shown=[];
+    if(lineShareMode==='detail')shown=g.all.slice().sort(sorter);
+    else if(lineShareMode==='unpaid')shown=g.unpaid.slice().sort(sorter);
     return {...g,paid,amount,days,shown};
   });
-
   groups.sort((a,b)=>{
     if(a.paid!==b.paid)return a.paid?-1:1;
-    if(!a.paid && a.days!==b.days)return b.days-a.days;
+    if(!a.paid&&a.days!==b.days)return b.days-a.days;
     return a.customer.localeCompare(b.customer,'th');
   });
-
-  const grand=groups.reduce((a,g)=>a+g.amount,0);
-  return {date:selectedDate,statusDate,groups,grand};
+  return {date:selectedDate,statusDate,groups,grand:groups.reduce((a,g)=>a+g.amount,0)};
 }
 function renderLinePreview(){
   const el=document.getElementById('linePreview'); if(!el)return;
@@ -396,7 +388,7 @@ function renderLinePreview(){
     }else{
       state=`<div class="line-state due">🔴 ${money(g.amount)} ฿<div class="line-age">ค้าง ${g.days} วัน • ${g.unpaid.length} รายการ</div></div>`;
     }
-    const rows=g.shown.length?`<div class="line-items">${g.shown.map(s=>`<div class="line-sub"><span>${lineShareMode==='unpaid'?'':thaiDate(s.date)+' • '}${esc(s.product)} ${s.qty} แก้ว</span><b>${money(s.total)} ฿</b></div>`).join('')}</div>`:'';
+    const rows=g.shown.length?`<div class="line-items">${g.shown.map(s=>`<div class="line-sub"><span>${esc(s.product)} ${s.qty} แก้ว</span><b>${money(s.total)} ฿</b></div>`).join('')}</div>`:'';
     return `<div class="line-person"><div class="line-top"><div class="line-name">${esc(g.customer)}</div>${state}</div>${rows}</div>`;
   }).join('')+`<div class="line-grand"><span>ยอดค้างทั้งหมด</span><span>${money(grand)} ฿</span></div>`;
 }
@@ -409,7 +401,7 @@ async function makeLinePng(){
   const W=1080,pad=58,rowGap=12; const canvas=document.createElement('canvas'); const ctx=canvas.getContext('2d');
   ctx.font='700 34px system-ui, sans-serif';
   let H=160;
-  groups.forEach(g=>{H+=82; if(g.shown.length){g.shown.forEach(s=>{ctx.font='26px system-ui, sans-serif';const txt=`${lineShareMode==='unpaid'?'':thaiDate(s.date)+' • '}${s.product} ${s.qty} แก้ว`;H+=Math.max(46,canvasWrap(ctx,txt,610).length*32)});H+=14}H+=rowGap}); H+=125;
+  groups.forEach(g=>{H+=82; if(g.shown.length){g.shown.forEach(s=>{ctx.font='26px system-ui, sans-serif';const txt=`${s.product} ${s.qty} แก้ว`;H+=Math.max(46,canvasWrap(ctx,txt,610).length*32)});H+=14}H+=rowGap}); H+=125;
   canvas.width=W;canvas.height=Math.max(H,400);ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,canvas.height);
   let y=34, logoH=54;
   try{
@@ -444,11 +436,11 @@ async function makeLinePng(){
 
     if(g.shown.length){
       ctx.font='26px system-ui, sans-serif';
-      let heights=g.shown.map(s=>Math.max(46,canvasWrap(ctx,`${lineShareMode==='unpaid'?'':thaiDate(s.date)+' • '}${s.product} ${s.qty} แก้ว`,610).length*32));
+      let heights=g.shown.map(s=>Math.max(46,canvasWrap(ctx,`${s.product} ${s.qty} แก้ว`,610).length*32));
       let blockH=16+heights.reduce((a,b)=>a+b,0);
       ctx.fillStyle='#faf8fb';ctx.fillRect(pad,y,W-pad*2,blockH);y+=8;
       g.shown.forEach((s,idx)=>{
-        const baseTxt=`${lineShareMode==='unpaid'?'':thaiDate(s.date)+' • '}${s.product} ${s.qty} แก้ว`;
+        const baseTxt=`${s.product} ${s.qty} แก้ว`;
         ctx.font='26px system-ui, sans-serif';
         ctx.fillStyle='#77727f';
         ctx.fillText(baseTxt,pad+18,y+28);
@@ -529,7 +521,7 @@ function renderUnpaid(){
           <div style="margin-top:10px;border-top:1px solid var(--line);padding-top:8px">
             ${items.map(s=>`<div style="padding:6px 0;border-bottom:1px dashed var(--line)">
               <div class="meta" style="display:flex;justify-content:space-between;gap:8px;align-items:center">
-                <span>${lineShareMode==='unpaid'?'':thaiDate(s.date)+' • '}${esc(s.product)} ${s.qty} แก้ว</span>
+                <span>${esc(s.product)} ${s.qty} แก้ว</span>
                 <span style="color:var(--red);font-weight:800;white-space:nowrap">${money(s.total)} บาท <input class="pay-check" type="checkbox" onchange="togglePaid('${s.id}',this.checked)"></span>
               </div>
               <div style="text-align:right;margin-top:4px">
@@ -622,7 +614,7 @@ function renderHistory(){
               const dayCount=!s.paid ? daysOverdue(s.date) : 0;
               return `<div style="padding:6px 0;border-bottom:1px dashed var(--line)">
                 <div class="meta summary-line">
-                  <span>${lineShareMode==='unpaid'?'':thaiDate(s.date)+' • '}${esc(s.product)} ${s.qty} แก้ว</span>
+                  <span>${esc(s.product)} ${s.qty} แก้ว</span>
                   <span style="font-weight:800;white-space:nowrap">
                     ${money(s.total)} ฿ ${s.paid?'• 🟢 จ่ายแล้ว':dayCount===0?'• 🟡 ยังไม่จ่าย':`• 🔴 ค้าง ${dayCount} วัน`}
                   </span>
