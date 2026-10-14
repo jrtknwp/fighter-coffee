@@ -247,14 +247,23 @@ async function normalizeDefaultProducts(){
   }
 }
 async function loadCloudData(){
-  const [sr,pr]=await Promise.all([
-    sb.from('sales').select('*').order('date',{ascending:false}).order('created_at',{ascending:true}),
-    sb.from('products').select('*').order('created_at',{ascending:true})
-  ]);
-  if(sr.error) throw new Error('sales: '+sr.error.message);
+  // Supabase returns at most 1,000 rows by default. Fetch every page so
+  // older unpaid transactions are never silently missing from summaries.
+  const allSaleRows=[];
+  const pageSize=500;
+  for(let offset=0;;offset+=pageSize){
+    const sr=await sb.from('sales').select('*')
+      .order('date',{ascending:false}).order('created_at',{ascending:true})
+      .range(offset,offset+pageSize-1);
+    if(sr.error)throw new Error('sales: '+sr.error.message);
+    const batch=sr.data||[];
+    allSaleRows.push(...batch);
+    if(batch.length<pageSize)break;
+  }
+  const pr=await sb.from('products').select('*').order('created_at',{ascending:true});
   if(pr.error) throw new Error('products: '+pr.error.message);
 
-  const cloudSales=(sr.data||[]).map(rowToSale);
+  const cloudSales=allSaleRows.map(rowToSale);
   const cloudProducts=(pr.data||[]).map(rowToProduct);
   const localSales=JSON.parse(localStorage.getItem(KEY_SALES)||'null')||[];
   const localProducts=JSON.parse(localStorage.getItem(KEY_PRODUCTS)||'null')||DEFAULT_PRODUCTS;
@@ -345,7 +354,7 @@ function getLineSummaryData(){
   const relevant=sales.filter(s=>{
     const day=String(s.date||'').slice(0,10);
     if(lineShareMode==='unpaid')return !s.paid;
-    return day===selectedDate || (!s.paid && day<=selectedDate);
+    return day===selectedDate || (!s.paid && !!day && day<selectedDate);
   });
   const map=new Map();
   relevant.forEach(s=>{
@@ -470,7 +479,8 @@ function renderSummary(){
 
   document.getElementById('sumAll').textContent=money(total)+' ฿';
   document.getElementById('sumPaid').textContent=money(paid)+' ฿';
-  document.getElementById('sumUnpaid').textContent=money(total-paid)+' ฿';
+  const carriedDebt=sales.filter(s=>!s.paid && String(s.date||'').slice(0,10)<date).reduce((n,s)=>n+Number(s.total||0),0);
+  document.getElementById('sumUnpaid').textContent=money(total-paid+carriedDebt)+' ฿';
 
   // หน้า Summary ใช้สรุปส่ง LINE เป็นรายการหลักเพียงชุดเดียว
   renderLinePreview();

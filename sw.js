@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fighter-coffee-v17-debt-dates';
+const CACHE_NAME = 'fighter-coffee-v18-all-debts-paged';
 const APP_SHELL = [
   './',
   './index.html',
