@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fighter-coffee-v20-visible-dates';
+const CACHE_NAME = 'fighter-coffee-v21-explicit-dates';
 const APP_SHELL = [
   './',
   './index.html',

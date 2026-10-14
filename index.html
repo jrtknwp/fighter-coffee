@@ -76,7 +76,7 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(13
 .toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%) translateY(15px);background:#29252f;color:#fff;padding:10px 15px;border-radius:12px;font-size:13px;opacity:0;pointer-events:none;transition:.2s;z-index:100;max-width:90%;text-align:center}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .month-title{font-weight:800;margin:17px 0 8px}
 
-.line-share-card{border:1px solid #ddd6ee;background:#fff}.line-mode{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 12px}.line-mode .btn.active{background:var(--purple);color:#fff}.line-preview{border:1px solid var(--line);border-radius:14px;padding:11px;background:#fff}.line-person{padding:8px 1px;border-bottom:1px solid #f0edf2}.line-person:last-child{border-bottom:0}.line-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.line-name{font-weight:800}.line-state{font-weight:850;text-align:right;white-space:nowrap}.line-state.ok{color:var(--green)}.line-state.today{color:#d99a00}.line-state.due{color:var(--red)}.line-age{font-size:11px;margin-top:2px}.line-items{background:#faf8fb;border-radius:9px;padding:5px 8px;margin-top:5px}.line-sub{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:var(--muted);padding:2px 0}.line-sub b{color:#5d5962;white-space:nowrap}.line-item-date{font-weight:850;color:#55458d}.line-grand{display:flex;justify-content:space-between;font-weight:850;background:var(--purple-light);border-radius:11px;padding:10px 11px;margin-top:9px}.line-report-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 0 9px;border-bottom:1px solid var(--line);margin-bottom:2px}.line-report-head img{width:104px;height:auto;display:block}.line-report-title{text-align:right;font-weight:850;font-size:14px}
+.line-share-card{border:1px solid #ddd6ee;background:#fff}.line-mode{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 12px}.line-mode .btn.active{background:var(--purple);color:#fff}.line-preview{border:1px solid var(--line);border-radius:14px;padding:11px;background:#fff}.line-person{padding:8px 1px;border-bottom:1px solid #f0edf2}.line-person:last-child{border-bottom:0}.line-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.line-name{font-weight:800}.line-state{font-weight:850;text-align:right;white-space:nowrap}.line-state.ok{color:var(--green)}.line-state.today{color:#d99a00}.line-state.due{color:var(--red)}.line-age{font-size:11px;margin-top:2px}.line-items{background:#faf8fb;border-radius:9px;padding:5px 8px;margin-top:5px}.line-sub{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:var(--muted);padding:2px 0}.line-sub b{color:#5d5962;white-space:nowrap}.line-item-date{font-weight:850;color:#55458d}.line-purchase-date{display:block!important;font-size:12px;font-weight:850;color:#55458d;margin-bottom:3px}.line-sub>span{min-width:0}.line-grand{display:flex;justify-content:space-between;font-weight:850;background:var(--purple-light);border-radius:11px;padding:10px 11px;margin-top:9px}.line-report-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 0 9px;border-bottom:1px solid var(--line);margin-bottom:2px}.line-report-head img{width:104px;height:auto;display:block}.line-report-title{text-align:right;font-weight:850;font-size:14px}
 @media(min-width:621px){.app{border-left:1px solid var(--line);border-right:1px solid var(--line)}}
 </style>
 </head>
@@ -122,7 +122,7 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(13
       <div class="stat"><small>ยอดค้างชำระ</small><strong id="sumUnpaid">0</strong></div>
     </div>
     <div class="card line-share-card">
-      <div class="section-title"><h3>📸 สรุปส่ง LINE</h3><span class="mini">สร้างเป็น PNG ภาพเดียว · V20</span></div>
+      <div class="section-title"><h3>📸 สรุปส่ง LINE</h3><span class="mini">สร้างเป็น PNG ภาพเดียว · V21</span></div>
       <div class="line-mode">
         <button id="lineCompactBtn" class="btn light active" onclick="setLineMode('compact')">กระชับ</button>
         <button id="lineDetailBtn" class="btn light" onclick="setLineMode('detail')">รายละเอียดทั้งหมด</button>
@@ -394,7 +394,7 @@ function renderLinePreview(){
     }else{
       state=`<div class="line-state due">🔴 ${money(g.amount)} ฿<div class="line-age">ค้าง ${g.days} วัน • ${g.unpaid.length} รายการ</div></div>`;
     }
-    const rows=g.shown.length?`<div class="line-items">${g.shown.map(s=>`<div class="line-sub"><span>${lineShareMode==='unpaid'?'<strong class="line-item-date">'+esc(thaiDate(String(s.date).slice(0,10)))+'</strong> • ':''}${esc(s.product)} ${s.qty} แก้ว</span><b>${money(s.total)} ฿</b></div>`).join('')}</div>`:'';
+    const rows=g.shown.length?`<div class="line-items">${g.shown.map(s=>`<div class="line-sub"><span>${lineShareMode==='unpaid'?`<span class="line-purchase-date">📅 ${esc(thaiDate(String(s.date).slice(0,10)))}</span>`:''}<span>${esc(s.product)} ${s.qty} แก้ว</span></span><b>${money(s.total)} ฿</b></div>`).join('')}</div>`:'';
     return `<div class="line-person"><div class="line-top"><div class="line-name">${esc(g.customer)}</div>${state}</div>${rows}</div>`;
   }).join('')+`<div class="line-grand"><span>ยอดค้างทั้งหมด</span><span>${money(grand)} ฿</span></div>`;
 }
@@ -407,7 +407,7 @@ async function makeLinePng(){
   const W=1080,pad=58,rowGap=12; const canvas=document.createElement('canvas'); const ctx=canvas.getContext('2d');
   ctx.font='700 34px system-ui, sans-serif';
   let H=160;
-  groups.forEach(g=>{H+=82; if(g.shown.length){g.shown.forEach(s=>{ctx.font='26px system-ui, sans-serif';const txt=`${lineShareMode==='unpaid'?thaiDate(String(s.date).slice(0,10))+' • ':''}${s.product} ${s.qty} แก้ว`;H+=Math.max(46,canvasWrap(ctx,txt,610).length*32)});H+=14}H+=rowGap}); H+=125;
+  groups.forEach(g=>{H+=82; if(g.shown.length){g.shown.forEach(s=>{ctx.font='26px system-ui, sans-serif';const txt=`${lineShareMode==='unpaid'?thaiDate(String(s.date).slice(0,10))+' • ':''}${s.product} ${s.qty} แก้ว`;H+=(lineShareMode==='unpaid'?74:Math.max(46,canvasWrap(ctx,txt,610).length*32))});H+=14}H+=rowGap}); H+=125;
   canvas.width=W;canvas.height=Math.max(H,400);ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,canvas.height);
   let y=34, logoH=54;
   try{
@@ -442,16 +442,19 @@ async function makeLinePng(){
 
     if(g.shown.length){
       ctx.font='26px system-ui, sans-serif';
-      let heights=g.shown.map(s=>Math.max(46,canvasWrap(ctx,`${lineShareMode==='unpaid'?thaiDate(String(s.date).slice(0,10))+' • ':''}${s.product} ${s.qty} แก้ว`,610).length*32));
+      let heights=g.shown.map(s=>lineShareMode==='unpaid'?74:Math.max(46,canvasWrap(ctx,`${s.product} ${s.qty} แก้ว`,610).length*32));
       let blockH=16+heights.reduce((a,b)=>a+b,0);
       ctx.fillStyle='#faf8fb';ctx.fillRect(pad,y,W-pad*2,blockH);y+=8;
       g.shown.forEach((s,idx)=>{
-        const baseTxt=`${lineShareMode==='unpaid'?thaiDate(String(s.date).slice(0,10))+' • ':''}${s.product} ${s.qty} แก้ว`;
-        ctx.font='26px system-ui, sans-serif';
-        ctx.fillStyle='#77727f';
-        ctx.fillText(baseTxt,pad+18,y+28);
+        const baseTxt=`${s.product} ${s.qty} แก้ว`;
+        if(lineShareMode==='unpaid'){
+          ctx.font='800 23px system-ui, sans-serif';ctx.fillStyle='#55458d';
+          ctx.fillText(`วันที่ซื้อ ${thaiDate(String(s.date).slice(0,10))}`,pad+18,y+25);
+        }
+        ctx.font='26px system-ui, sans-serif';ctx.fillStyle='#77727f';
+        ctx.fillText(baseTxt,pad+18,y+(lineShareMode==='unpaid'?57:28));
         ctx.textAlign='right';
-        ctx.fillStyle='#5d5962';ctx.font='700 26px system-ui, sans-serif';ctx.fillText(`${money(s.total)} ฿`,W-pad-18,y+28);
+        ctx.fillStyle='#5d5962';ctx.font='700 26px system-ui, sans-serif';ctx.fillText(`${money(s.total)} ฿`,W-pad-18,y+(lineShareMode==='unpaid'?57:28));
         ctx.textAlign='left'; y+=heights[idx];
       });
       y+=8;
