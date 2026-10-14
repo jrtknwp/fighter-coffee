@@ -394,7 +394,7 @@ function renderLinePreview(){
     }else{
       state=`<div class="line-state due">🔴 ${money(g.amount)} ฿<div class="line-age">ค้าง ${g.days} วัน • ${g.unpaid.length} รายการ</div></div>`;
     }
-    const rows=g.shown.length?`<div class="line-items">${g.shown.map(s=>`<div class="line-sub"><span>${esc(s.product)} ${s.qty} แก้ว</span><b>${money(s.total)} ฿</b></div>`).join('')}</div>`:'';
+    const rows=g.shown.length?`<div class="line-items">${g.shown.map(s=>`<div class="line-sub"><span>${lineShareMode==='unpaid'?thaiDate(String(s.date).slice(0,10))+' • ':''}${esc(s.product)} ${s.qty} แก้ว</span><b>${money(s.total)} ฿</b></div>`).join('')}</div>`:'';
     return `<div class="line-person"><div class="line-top"><div class="line-name">${esc(g.customer)}</div>${state}</div>${rows}</div>`;
   }).join('')+`<div class="line-grand"><span>ยอดค้างทั้งหมด</span><span>${money(grand)} ฿</span></div>`;
 }
@@ -407,7 +407,7 @@ async function makeLinePng(){
   const W=1080,pad=58,rowGap=12; const canvas=document.createElement('canvas'); const ctx=canvas.getContext('2d');
   ctx.font='700 34px system-ui, sans-serif';
   let H=160;
-  groups.forEach(g=>{H+=82; if(g.shown.length){g.shown.forEach(s=>{ctx.font='26px system-ui, sans-serif';const txt=`${s.product} ${s.qty} แก้ว`;H+=Math.max(46,canvasWrap(ctx,txt,610).length*32)});H+=14}H+=rowGap}); H+=125;
+  groups.forEach(g=>{H+=82; if(g.shown.length){g.shown.forEach(s=>{ctx.font='26px system-ui, sans-serif';const txt=`${lineShareMode==='unpaid'?thaiDate(String(s.date).slice(0,10))+' • ':''}${s.product} ${s.qty} แก้ว`;H+=Math.max(46,canvasWrap(ctx,txt,610).length*32)});H+=14}H+=rowGap}); H+=125;
   canvas.width=W;canvas.height=Math.max(H,400);ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,canvas.height);
   let y=34, logoH=54;
   try{
@@ -442,11 +442,11 @@ async function makeLinePng(){
 
     if(g.shown.length){
       ctx.font='26px system-ui, sans-serif';
-      let heights=g.shown.map(s=>Math.max(46,canvasWrap(ctx,`${s.product} ${s.qty} แก้ว`,610).length*32));
+      let heights=g.shown.map(s=>Math.max(46,canvasWrap(ctx,`${lineShareMode==='unpaid'?thaiDate(String(s.date).slice(0,10))+' • ':''}${s.product} ${s.qty} แก้ว`,610).length*32));
       let blockH=16+heights.reduce((a,b)=>a+b,0);
       ctx.fillStyle='#faf8fb';ctx.fillRect(pad,y,W-pad*2,blockH);y+=8;
       g.shown.forEach((s,idx)=>{
-        const baseTxt=`${s.product} ${s.qty} แก้ว`;
+        const baseTxt=`${lineShareMode==='unpaid'?thaiDate(String(s.date).slice(0,10))+' • ':''}${s.product} ${s.qty} แก้ว`;
         ctx.font='26px system-ui, sans-serif';
         ctx.fillStyle='#77727f';
         ctx.fillText(baseTxt,pad+18,y+28);
