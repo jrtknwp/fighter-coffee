@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#8b7bb8">
+<meta name="theme-color" content="#087f5b">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -14,10 +14,10 @@
 <title>☕ Fighter Coffee</title>
 <style>
 :root{
-  --purple:#8b7bb8; --purple-dark:#67558f; --purple-light:#f1edfa;
-  --bg:#f7f6fa; --card:#fff; --text:#29272f; --muted:#77727f;
-  --line:#e8e5ed; --red:#dc3d52; --red-bg:#fff0f2;
-  --green:#2f9b67; --green-bg:#ecfaf3; --shadow:0 5px 18px rgba(60,45,90,.07);
+  --purple:#087f5b; --purple-dark:#076747; --purple-light:#e9f7f0;
+  --bg:#ffffff; --card:#ffffff; --text:#182b26; --muted:#64766d;
+  --line:#e1ece6; --red:#d84556; --red-bg:#fff0f2;
+  --green:#087f5b; --green-bg:#e9f7f0; --shadow:0 5px 20px rgba(8,70,45,.055);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans Thai",sans-serif}
@@ -76,7 +76,7 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(13
 .toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%) translateY(15px);background:#29252f;color:#fff;padding:10px 15px;border-radius:12px;font-size:13px;opacity:0;pointer-events:none;transition:.2s;z-index:100;max-width:90%;text-align:center}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .month-title{font-weight:800;margin:17px 0 8px}
 
-.line-share-card{border:1px solid #ddd6ee;background:#fff}.line-mode{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 12px}.line-mode .btn.active{background:var(--purple);color:#fff}.line-preview{border:1px solid var(--line);border-radius:14px;padding:11px;background:#fff}.line-person{padding:8px 1px;border-bottom:1px solid #f0edf2}.line-person:last-child{border-bottom:0}.line-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.line-name{font-weight:800}.line-state{font-weight:850;text-align:right;white-space:nowrap}.line-state.ok{color:var(--green)}.line-state.today{color:#d99a00}.line-state.due{color:var(--red)}.line-age{font-size:11px;margin-top:2px}.line-items{background:#faf8fb;border-radius:9px;padding:5px 8px;margin-top:5px}.line-sub{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:var(--muted);padding:2px 0}.line-sub b{color:#5d5962;white-space:nowrap}.line-item-date{font-weight:850;color:#55458d}.line-purchase-date{display:block!important;font-size:12px;font-weight:850;color:#55458d;margin-bottom:3px}.line-sub>span{min-width:0}.line-grand{display:flex;justify-content:space-between;font-weight:850;background:var(--purple-light);border-radius:11px;padding:10px 11px;margin-top:9px}.line-report-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 0 9px;border-bottom:1px solid var(--line);margin-bottom:2px}.line-report-head img{width:104px;height:auto;display:block}.line-report-title{text-align:right;font-weight:850;font-size:14px}
+.line-share-card{border:1px solid #ddd6ee;background:#fff}.line-mode{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:10px 0 12px}.line-mode .btn{padding:10px 5px;font-size:12px;white-space:normal;line-height:1.35;min-height:45px}.line-mode .btn.active{background:var(--purple);color:#fff}.line-preview{border:1px solid var(--line);border-radius:14px;padding:11px;background:#fff}.line-person{padding:8px 1px;border-bottom:1px solid #e8f1eb}.line-person:last-child{border-bottom:0}.line-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.line-name{font-weight:800}.line-state{font-weight:850;text-align:right;white-space:nowrap}.line-state.ok{color:var(--green)}.line-state.today{color:#d99a00}.line-state.due{color:var(--red)}.line-age{font-size:11px;margin-top:2px}.line-items{background:#f3faf6;border-radius:9px;padding:5px 8px;margin-top:5px}.line-sub{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:var(--muted);padding:2px 0}.line-sub b{color:#40564a;white-space:nowrap}.line-item-date{font-weight:850;color:#087f5b}.line-purchase-date{display:block!important;font-size:12px;font-weight:850;color:#087f5b;margin-bottom:3px}.line-sub>span{min-width:0}.line-grand{display:flex;justify-content:space-between;font-weight:850;background:var(--purple-light);border-radius:11px;padding:10px 11px;margin-top:9px}.line-report-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 0 9px;border-bottom:1px solid var(--line);margin-bottom:2px}.line-report-head img{width:104px;height:auto;display:block}.line-report-title{text-align:right;font-weight:850;font-size:14px}
 @media(min-width:621px){.app{border-left:1px solid var(--line);border-right:1px solid var(--line)}}
 </style>
 </head>
@@ -122,11 +122,11 @@ input:focus,select:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(13
       <div class="stat"><small>ยอดค้างชำระ</small><strong id="sumUnpaid">0</strong></div>
     </div>
     <div class="card line-share-card">
-      <div class="section-title"><h3>📸 สรุปส่ง LINE</h3><span class="mini">สร้างเป็น PNG ภาพเดียว · V21</span></div>
+      <div class="section-title"><h3>📸 สรุปส่ง LINE</h3><span class="mini">สร้างเป็น PNG ภาพเดียว · V22</span></div>
       <div class="line-mode">
-        <button id="lineCompactBtn" class="btn light active" onclick="setLineMode('compact')">กระชับ</button>
-        <button id="lineDetailBtn" class="btn light" onclick="setLineMode('detail')">รายละเอียดทั้งหมด</button>
-        <button id="lineUnpaidBtn" class="btn light" onclick="setLineMode('unpaid')">เฉพาะยังไม่จ่าย</button>
+        <button id="lineCompactBtn" class="btn light active" onclick="setLineMode('compact')">ยอดขายรายวัน</button>
+        <button id="lineDetailBtn" class="btn light" onclick="setLineMode('detail')">รายละเอียด</button>
+        <button id="lineUnpaidBtn" class="btn light" onclick="setLineMode('unpaid')">ยอดค้างทั้งหมด</button>
       </div>
       <div id="linePreview" class="line-preview"></div>
       <button class="btn primary full" style="margin-top:11px" onclick="shareLineSummary()">📸 บันทึก / ส่ง LINE</button>
@@ -349,13 +349,11 @@ function setLineMode(mode){
 function getLineSummaryData(){
   const selectedDate=document.getElementById('summaryDate')?.value||todayKey();
   const statusDate=todayKey();
-  // Every outstanding debt from any earlier date is carried into the report.
-  // Do not include future-dated debts in a past day's snapshot.
-  const relevant=sales.filter(s=>{
-    const day=String(s.date||'').slice(0,10);
-    if(lineShareMode==='unpaid')return !s.paid;
-    return day===selectedDate || (!s.paid && !!day && day<selectedDate);
-  });
+  // Daily and detail reports use only sales on the selected date.
+  // Outstanding report collects all unpaid items regardless of date.
+  const relevant=sales.filter(s=>lineShareMode==='unpaid'
+    ? !s.paid
+    : String(s.date||'').slice(0,10)===selectedDate);
   const map=new Map();
   relevant.forEach(s=>{
     const name=String(s.customer||'').trim();
@@ -377,14 +375,14 @@ function getLineSummaryData(){
 function renderLinePreview(){
   const el=document.getElementById('linePreview'); if(!el)return;
   const {date,groups,grand}=getLineSummaryData();
-  if(!groups.length){el.innerHTML='<div class="empty">ไม่มีรายการสำหรับวันที่เลือก</div>';return}
+  if(!groups.length){el.innerHTML='<div class="empty">'+(lineShareMode==='unpaid'?'ไม่มีรายการค้างชำระ':'ไม่มีรายการสำหรับวันที่เลือก')+'</div>';return}
   const rowStatus=s=>{
     const d=daysBetweenDates(s.date,date);
     return d>0 ? `<span style="color:var(--red);font-weight:800">🔴 ค้าง ${d} วัน</span>` : '';
   };
   const reportTitle=lineShareMode==='unpaid'
     ? `ยอดค้างทั้งหมด • ${groups.length} คน`
-    : `สรุป ${thaiDate(date)} • ${groups.length} คน`;
+    : `${lineShareMode==='compact'?'ยอดขายรายวัน':'รายละเอียด'} ${thaiDate(date)} • ${groups.length} คน`;
   el.innerHTML=`<div class="line-report-head"><img src="./fighter-logo.png" alt="Fighter Urban Coffee"><div class="line-report-title">${reportTitle}</div></div>`+groups.map(g=>{
     let state;
     if(g.paid){
@@ -416,19 +414,19 @@ async function makeLinePng(){
   }catch(e){
     ctx.fillStyle='#162b59';ctx.font='800 30px system-ui, sans-serif';ctx.fillText('FIGHTER',pad,y+34);
   }
-  ctx.fillStyle='#29272f';ctx.font='700 31px system-ui, sans-serif';ctx.textAlign='right';
+  ctx.fillStyle='#182b26';ctx.font='700 31px system-ui, sans-serif';ctx.textAlign='right';
   const pngTitle=lineShareMode==='unpaid'
     ? `ยอดค้างทั้งหมด • ${groups.length} คน`
-    : `สรุป ${thaiDate(date)} • ${groups.length} คน`;
+    : `${lineShareMode==='compact'?'ยอดขายรายวัน':'รายละเอียด'} ${thaiDate(date)} • ${groups.length} คน`;
   ctx.fillText(pngTitle,W-pad,y+Math.max(34,logoH*.58));
   ctx.textAlign='left'; y+=Math.max(logoH,58)+20;
-  ctx.strokeStyle='#e8e5ed';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.stroke();y+=20;
+  ctx.strokeStyle='#e1ece6';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.stroke();y+=20;
 
   for(const g of groups){
-    ctx.fillStyle='#29272f';ctx.font='800 31px system-ui, sans-serif';ctx.fillText(g.customer,pad,y+31);
+    ctx.fillStyle='#182b26';ctx.font='800 31px system-ui, sans-serif';ctx.fillText(g.customer,pad,y+31);
     let mainText, mainColor, subText='';
     if(g.paid){
-      mainText='🟢 จ่ายครบ'; mainColor='#2f9b67';
+      mainText='🟢 จ่ายครบ'; mainColor='#087f5b';
     }else if(g.days===0){
       mainText=`🟡 ${money(g.amount)} ฿`; mainColor='#d99a00';
       subText=`ยังไม่จ่าย • ${g.unpaid.length} รายการ`;
@@ -444,24 +442,24 @@ async function makeLinePng(){
       ctx.font='26px system-ui, sans-serif';
       let heights=g.shown.map(s=>lineShareMode==='unpaid'?74:Math.max(46,canvasWrap(ctx,`${s.product} ${s.qty} แก้ว`,610).length*32));
       let blockH=16+heights.reduce((a,b)=>a+b,0);
-      ctx.fillStyle='#faf8fb';ctx.fillRect(pad,y,W-pad*2,blockH);y+=8;
+      ctx.fillStyle='#f3faf6';ctx.fillRect(pad,y,W-pad*2,blockH);y+=8;
       g.shown.forEach((s,idx)=>{
         const baseTxt=`${s.product} ${s.qty} แก้ว`;
         if(lineShareMode==='unpaid'){
-          ctx.font='800 23px system-ui, sans-serif';ctx.fillStyle='#55458d';
+          ctx.font='800 23px system-ui, sans-serif';ctx.fillStyle='#087f5b';
           ctx.fillText(`วันที่ซื้อ ${thaiDate(String(s.date).slice(0,10))}`,pad+18,y+25);
         }
-        ctx.font='26px system-ui, sans-serif';ctx.fillStyle='#77727f';
+        ctx.font='26px system-ui, sans-serif';ctx.fillStyle='#64766d';
         ctx.fillText(baseTxt,pad+18,y+(lineShareMode==='unpaid'?57:28));
         ctx.textAlign='right';
-        ctx.fillStyle='#5d5962';ctx.font='700 26px system-ui, sans-serif';ctx.fillText(`${money(s.total)} ฿`,W-pad-18,y+(lineShareMode==='unpaid'?57:28));
+        ctx.fillStyle='#40564a';ctx.font='700 26px system-ui, sans-serif';ctx.fillText(`${money(s.total)} ฿`,W-pad-18,y+(lineShareMode==='unpaid'?57:28));
         ctx.textAlign='left'; y+=heights[idx];
       });
       y+=8;
     }
-    ctx.strokeStyle='#f0edf2';ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.stroke();y+=rowGap;
+    ctx.strokeStyle='#e8f1eb';ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(W-pad,y);ctx.stroke();y+=rowGap;
   }
-  ctx.fillStyle='#f1edfa';ctx.fillRect(pad,y,W-pad*2,76);ctx.fillStyle='#29272f';ctx.font='800 30px system-ui, sans-serif';ctx.fillText('ยอดค้างทั้งหมด',pad+20,y+48);ctx.textAlign='right';ctx.fillText(`${money(grand)} ฿`,W-pad-20,y+48);ctx.textAlign='left';
+  ctx.fillStyle='#e9f7f0';ctx.fillRect(pad,y,W-pad*2,76);ctx.fillStyle='#182b26';ctx.font='800 30px system-ui, sans-serif';ctx.fillText('ยอดค้างทั้งหมด',pad+20,y+48);ctx.textAlign='right';ctx.fillText(`${money(grand)} ฿`,W-pad-20,y+48);ctx.textAlign='left';
   return await new Promise(res=>canvas.toBlob(res,'image/png',1));
 }
 async function shareLineSummary(){
@@ -482,8 +480,7 @@ function renderSummary(){
 
   document.getElementById('sumAll').textContent=money(total)+' ฿';
   document.getElementById('sumPaid').textContent=money(paid)+' ฿';
-  const carriedDebt=sales.filter(s=>!s.paid && String(s.date||'').slice(0,10)<date).reduce((n,s)=>n+Number(s.total||0),0);
-  document.getElementById('sumUnpaid').textContent=money(total-paid+carriedDebt)+' ฿';
+  document.getElementById('sumUnpaid').textContent=money(total-paid)+' ฿';
 
   // หน้า Summary ใช้สรุปส่ง LINE เป็นรายการหลักเพียงชุดเดียว
   renderLinePreview();
